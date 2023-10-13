@@ -26,19 +26,25 @@ trait TInput<T> {
 }
 
 
+#[allow(non_snake_case)]
+
 impl<T: Debug> TInput<T> for FnInput<T> {
     fn add(&mut self, value: T) {
         self.value = value;
-        // f
         // println!("FnInput<{}>.add | value: {:?}", std::any::type_name::<T>(), &self.value)
     }
 }
 
+impl<T: Clone> TOutput<T> for FnInput<T> {
+    fn out(&self) -> T {
+        self.value.clone()
+    }
+}
 const QSIZE: u64 = 1_000;
 
 
 fn producer(send: MPMCSender<PointType>) {
-    let iterations = 10_000_000;
+    let iterations = 1_000_000;
     
     let h = thread::Builder::new().name("name".to_owned()).spawn(move || {
         let name = "prodicer";
@@ -99,10 +105,13 @@ fn main() {
                             match input.unwrap() {
                                 FnType::Bool(i) => {
                                     i.add(point.value);
+                                    i.out();
                                     // trace!("FnInput.value: {:?}", i.value);
                                 },
                                 _ => panic!("wrong type"),
-                            };
+                            }
+                        } else {
+                            panic!("FnInput '{}' not found", point.name)
                         }
                     },
                     PointType::Int(point) => {
@@ -111,10 +120,13 @@ fn main() {
                             match input.unwrap() {
                                 FnType::Int(i) => {
                                     i.add(point.value);
+                                    i.out();
                                     // trace!("FnInput.value: {:?}", i.value);
                                 },
                                 _ => panic!("wrong type"),
-                            };                
+                            }
+                        } else {
+                            panic!("FnInput '{}' not found", point.name)
                         }
                     },
                     PointType::Float(point) => {
@@ -123,13 +135,16 @@ fn main() {
                             match input.unwrap() {
                                 FnType::Float(i) => {
                                     i.add(point.value);
+                                    i.out();
                                     // trace!("FnInput.value: {:?}", i.value);
                                 },
                                 _ => panic!("wrong type"),
-                            };                
+                            }
+                        } else {
+                            panic!("FnInput '{}' not found", point.name)
                         }
                     },
-                }                
+                };
             },
             Err(err) => {
                 warn!("Error read from queue: {:?}", err);
