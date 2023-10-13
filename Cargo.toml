@@ -20,6 +20,8 @@ circular-queue = "^0.2"
 
 multiqueue = "^0.3"
 
+rand = "^0.8"
+
 [[bin]]
 name = "async_event"
 path = "src/async_event.rs"

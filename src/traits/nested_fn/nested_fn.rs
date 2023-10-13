@@ -1,4 +1,7 @@
-use std::{collections::HashMap, fmt::Debug};
+use std::{collections::HashMap, fmt::Debug, time::Instant};
+
+use log::trace;
+use rand::Rng;
 
 #[derive(Clone)]
 struct FnInput<T> {
@@ -34,6 +37,8 @@ fn main() {
     ]);
     // let inputs = RefCell::new(inputs);
 
+
+    let iterations = 1000;
     
     let queue = vec![
         PointType::Bool(Point {value:true, name: String::from("bool1") }),
@@ -43,7 +48,12 @@ fn main() {
         PointType::Float(Point {value:12.77, name: String::from("float1") }),
         PointType::Int(Point {value:65, name: String::from("int1") }),
     ];
-    for point in queue {
+    let mut random = rand::thread_rng();
+    let max = queue.len() - 1;
+    let time = Instant::now();
+    for _ in 1..iterations {
+        let index = random.gen_range(0..max);
+        let point = &queue[index];
         match point {
             PointType::Bool(point) => {
                 let input = inputs.get_mut(&point.name);
@@ -51,7 +61,7 @@ fn main() {
                     match input.unwrap() {
                         FnType::Bool(i) => {
                             i.add(point.value);
-                            println!("FnInput.value: {:?}", i.value);
+                            trace!("FnInput.value: {:?}", i.value);
                         },
                         _ => panic!("wrong type"),
                     };
@@ -63,7 +73,7 @@ fn main() {
                     match input.unwrap() {
                         FnType::Int(i) => {
                             i.add(point.value);
-                            println!("FnInput.value: {:?}", i.value);
+                            trace!("FnInput.value: {:?}", i.value);
                         },
                         _ => panic!("wrong type"),
                     };                
@@ -75,7 +85,7 @@ fn main() {
                     match input.unwrap() {
                         FnType::Float(i) => {
                             i.add(point.value);
-                            println!("FnInput.value: {:?}", i.value);
+                            trace!("FnInput.value: {:?}", i.value);
                         },
                         _ => panic!("wrong type"),
                     };                
@@ -83,6 +93,7 @@ fn main() {
             },
         }
     }
+    println!("elapsed: {:?}", time.elapsed());
 }
 
 
