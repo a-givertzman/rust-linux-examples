@@ -1,70 +1,40 @@
 extern crate multiqueue;
 #[path="../../debug/mod.rs"]
 mod debug;
-use std::{collections::HashMap, fmt::Debug, time::{Instant, Duration}, thread, sync::atomic::Ordering};
-use multiqueue::{mpmc_queue, MPMCSender};
-use log::{trace, debug, warn, info};
+#[path="./functions.rs"]
+mod functions;
+
+use std::{collections::HashMap, time::{Instant, Duration}, thread, sync::mpsc::{Sender, Receiver, self}};
+use log::{debug, warn, info};
 use rand::Rng;
 
-use crate::debug::debug_session::{DebugSession, LogLevel};
+use crate::{debug::debug_session::{DebugSession, LogLevel}, functions::{FnInput, FnType, PointType, Point, TInput, TOutput}};
 
-#[derive(Clone)]
-struct FnInput<T> {
-    value: T
-}
-struct FnSum;
-struct FnMul;
-struct FnCompare;
+const ITERATIONS: usize = 10_000_000;
 
-trait TOutput<T> {
-    fn out(&self) -> T;
-}
-
-
-trait TInput<T> {
-    fn add(&mut self, value: T);
+fn points() ->Vec<PointType> {
+    vec![
+        PointType::Bool(  Point { value:true,   name:String::from("bool1"),  status: 0, timestamp: chrono::offset::Utc::now() }),
+        PointType::Int(   Point { value:13,     name:String::from("int1"),   status: 0, timestamp: chrono::offset::Utc::now() }),
+        PointType::Int(   Point { value:43,     name:String::from("int1"),   status: 0, timestamp: chrono::offset::Utc::now() }),
+        PointType::Bool(  Point { value:false,  name:String::from("bool1"),  status: 0, timestamp: chrono::offset::Utc::now() }),
+        PointType::Float( Point {value: 12.77,  name:String::from("float1"), status: 0, timestamp: chrono::offset::Utc::now() }),
+        PointType::Int(   Point { value:65,     name:String::from("int1"),   status: 0, timestamp: chrono::offset::Utc::now() }),
+    ]
 }
 
-
-#[allow(non_snake_case)]
-
-impl<T: Debug> TInput<T> for FnInput<T> {
-    fn add(&mut self, value: T) {
-        self.value = value;
-        // println!("FnInput<{}>.add | value: {:?}", std::any::type_name::<T>(), &self.value)
-    }
-}
-
-impl<T: Clone> TOutput<T> for FnInput<T> {
-    fn out(&self) -> T {
-        self.value.clone()
-    }
-}
-const QSIZE: u64 = 1_000;
-
-
-fn producer(send: MPMCSender<PointType>) {
-    let iterations = 1_000_000;
-    
+fn producer1(iterations: usize, send: Sender<PointType>) {
     let h = thread::Builder::new().name("name".to_owned()).spawn(move || {
         let name = "prodicer";
         debug!("Task({}).run | calculating step...", name);
-
-        let queue = vec![
-            PointType::Bool(Point {value:true, name: String::from("bool1") }),
-            PointType::Int(Point {value:13, name: String::from("int1") }),
-            PointType::Int(Point {value:43, name: String::from("int1") }),
-            PointType::Bool(Point {value:false, name: String::from("bool1") }),
-            PointType::Float(Point {value:12.77, name: String::from("float1") }),
-            PointType::Int(Point {value:65, name: String::from("int1") }),
-        ];
+        let points = points();
         let mut random = rand::thread_rng();
-        let max = queue.len() - 1;
+        let max = points.len();
         let mut sent = 0;
-        for _ in 1..iterations {
+        for _ in 0..iterations {
             let index = random.gen_range(0..max);
-            let point = &queue[index];
-            match send.try_send(point.clone()) {
+            let point = &points[index];
+            match send.send(point.clone()) {
                 Ok(_) => {
                     sent += 1;
                 },
@@ -79,18 +49,47 @@ fn producer(send: MPMCSender<PointType>) {
     }).unwrap();    
 }
 
+fn producer2(iterations: usize, send: Sender<PointType>) {
+    let h = thread::Builder::new().name("name".to_owned()).spawn(move || {
+        let name = "prodicer";
+        debug!("Task({}).run | calculating step...", name);
+
+        let points = points();
+        let mut random = rand::thread_rng();
+        let max = points.len();
+        let mut sent = 0;
+        for _ in 0..iterations {
+            let index = random.gen_range(0..max);
+            let point = &points[index];
+            match send.send(point.clone()) {
+                Ok(_) => {
+                    sent += 1;
+                },
+                Err(err) => {
+                    warn!("Error write to queue: {:?}", err);
+                },
+            }
+        }        
+        info!("Sent points: {}", sent);
+        thread::sleep(Duration::from_secs_f32(0.1));
+        // debug!("Task({}).run | calculating step - done ({:?})", name, cycle.elapsed());
+    }).unwrap();    
+}
 
 fn main() {
     DebugSession::init(LogLevel::Trace);
 
-    let (send, recv) = mpmc_queue(QSIZE);
+    // let (send, recv) = mpmc_queue(QSIZE);
+    let (send, recv): (Sender<PointType>, Receiver<PointType>) = mpsc::channel();
 
-    producer(send);
+    producer1(ITERATIONS, send.clone());
+    producer2(ITERATIONS, send);
+    thread::sleep(Duration::from_secs_f32(1.1));
     
     let mut inputs: HashMap<String, FnType> = HashMap::from([
-        (String::from("float1"), FnType::Float( FnInput { value: 0.0 } )), 
-        (String::from("int1"), FnType::Int( FnInput { value: 0 } )), 
-        (String::from("bool1"), FnType::Bool( FnInput { value: false } )), 
+        (String::from("float1"), FnType::Float( FnInput { value: 0.0, status: 0, timestamp: chrono::offset::Utc::now() } )), 
+        (String::from("int1"), FnType::Int( FnInput { value: 0, status: 0, timestamp: chrono::offset::Utc::now() } )), 
+        (String::from("bool1"), FnType::Bool( FnInput { value: false, status: 0, timestamp: chrono::offset::Utc::now() } )), 
     ]);
     let mut received = 0;
     let time = Instant::now();
@@ -104,7 +103,7 @@ fn main() {
                         if input.is_some() {
                             match input.unwrap() {
                                 FnType::Bool(i) => {
-                                    i.add(point.value);
+                                    i.add(point);
                                     i.out();
                                     // trace!("FnInput.value: {:?}", i.value);
                                 },
@@ -119,7 +118,7 @@ fn main() {
                         if input.is_some() {
                             match input.unwrap() {
                                 FnType::Int(i) => {
-                                    i.add(point.value);
+                                    i.add(point);
                                     i.out();
                                     // trace!("FnInput.value: {:?}", i.value);
                                 },
@@ -134,7 +133,7 @@ fn main() {
                         if input.is_some() {
                             match input.unwrap() {
                                 FnType::Float(i) => {
-                                    i.add(point.value);
+                                    i.add(point);
                                     i.out();
                                     // trace!("FnInput.value: {:?}", i.value);
                                 },
@@ -154,24 +153,4 @@ fn main() {
     }
     println!("elapsed: {:?}", time.elapsed());
     info!("Received points: {}", received);
-}
-
-
-#[derive(Clone)]
-struct Point<T> {
-    name: String,
-    value: T,
-}
-
-#[derive(Clone)]
-enum PointType {
-    Bool(Point<bool>),
-    Int(Point<i64>),
-    Float(Point<f64>),
-}
-
-enum FnType {
-    Bool(FnInput<bool>),
-    Int(FnInput<i64>),
-    Float(FnInput<f64>),
 }

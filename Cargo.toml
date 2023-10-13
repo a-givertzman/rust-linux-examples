@@ -71,5 +71,9 @@ name = "add_phantom"
 path = "src/traits/phantom_type/add_phantom.rs"
 
 [[bin]]
-name = "nested_fn"
-path = "src/traits/nested_fn/nested_fn.rs"
+name = "nested_fn_channel"
+path = "src/traits/nested_fn/nested_fn_channel.rs"
+
+[[bin]]
+name = "nested_fn_multiqueue"
+path = "src/traits/nested_fn/nested_fn_multiqueue.rs"
