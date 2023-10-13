@@ -43,8 +43,8 @@ use crate::{
 
 pub const PI: f64 = std::f64::consts::PI;
 pub const PI2: f64 = PI * 2.0;
-const EOF: u8 = 4;
-
+const SYN: u8 = 22;
+const EOT: u8 = 4;
 
 ///
 /// 

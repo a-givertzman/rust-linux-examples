@@ -7,45 +7,34 @@ use log::{
     warn,
 };
 use std::{
-    env, 
     net::UdpSocket, 
     time::Duration, 
     sync::{Arc, Mutex},
 };
-
-fn main() -> std::io::Result<()> {
-    env::set_var("RUST_LOG", "debug");
-    env::set_var("RUST_BACKTRACE", "1");
-    env_logger::init();
-
-    let reconnectDelay = Duration::from_secs(3);
-    let localAddr = "192.168.120.172:5180";
-    let remoteAddr = "192.168.120.173:5180";
-
-    debug!("[main] creating UdpServer...");
-    let tcpSrv = Arc::new(Mutex::new(
-        UdpServer::new(
-            localAddr,
-            remoteAddr,
-            // "127.0.0.1:5180",
-            Some(reconnectDelay),
-        )
-    ));
-    debug!("[main] UdpServer created");
-    debug!("[main] starting UdpServer...");
-    UdpServer::run(tcpSrv);
-    debug!("[main] UdpServer started");
-
-    Ok(())
-}
-
-struct UdpServer {
+pub struct UdpServer {
     localAddr: String, //SocketAddr,
     remoteAddr: String, //SocketAddr,
     reconnectDelay: Duration,
     pub isConnected: bool,
     cancel: bool,
 }
+
+// T, uc	QSIZE
+// 976.563	1 024
+// 488.281	2 048
+// 244.141	4 096
+// 122.070	8 192
+// 61.035	16 384
+// 30.518	32 768
+// 15.259	65 536
+// 7.629	131 072
+// 3.815	262 144
+// 1.907	524 288
+
+const SYN: u8 = 22;
+const EOT: u8 = 4;
+const QSIZE: usize = 512;
+const QSIZE_DOUBLE: usize = QSIZE * 2;
 
 impl UdpServer {
     ///
@@ -74,35 +63,34 @@ impl UdpServer {
         let reconnectDelay = thisMutax.reconnectDelay;
         info!("[UdpServer.run] started");
         while !cancel {
-            info!("[UdpServer.run] try to open on: {:?}\n", localAddr);
+            info!("[UdpServer.run] try to bind on: {:?}", localAddr);
             match UdpSocket::bind(localAddr) {
                 Ok(socket) => {
-                    info!("[UdpServer.run] opened on: {:?}\n", localAddr);
+                    info!("[UdpServer.run] ready on: {:?}\n", localAddr);
                     thisMutax.isConnected = true;
-                    info!("[UdpServer.run] isConnected true done: {:?}\n", thisMutax.isConnected);
-                    const QSIZE_SRC: usize = 1024;
-                    const QSIZE_TARGET: usize = QSIZE_SRC / 2;
-                    let mut buf = [0; QSIZE_SRC];
-                    let mut bufTarget = [0; QSIZE_TARGET];
-                    match socket.send_to(&buf, remoteAddr) {
+                    info!("[UdpServer.run] isConnected: {:?}\n", thisMutax.isConnected);
+                    let mut bufDouble = [0; QSIZE_DOUBLE];
+                    let mut buf = [0; QSIZE];
+                    info!("[UdpServer.run] sending handshake({}): {:?}\n", bufDouble.len(), bufDouble);
+                    match socket.send_to(&Self::handshake(), remoteAddr) {
                         Ok(_) => {},
                         Err(err) => {
                             warn!("[UdpServer.run] send error: {:#?}", err);
                         },
                     };
                     loop {
-                        match socket.recv_from(&mut buf) {
+                        match socket.recv_from(&mut bufDouble) {
                             Ok((amt, src)) => {
-                                debug!("[UdpServer.run] receaved bytes({}) from{:?}: {:?}",amt, src, buf);
+                                // debug!("[UdpServer.run] receaved bytes({}) from{:?}: {:?}",amt, src, buf);
                                 let mut bytes = [0_u8; 2];
-                                for i in 0..QSIZE_TARGET {
-                                    bytes[0] = buf[i * 2];
-                                    bytes[1] = buf[i * 2 + 1];
-                                    bufTarget[i] = u16::from_be_bytes(bytes);
+                                for i in 0..QSIZE {
+                                    bytes[0] = bufDouble[i * 2];
+                                    bytes[1] = bufDouble[i * 2 + 1];
+                                    buf[i] = u16::from_be_bytes(bytes);
                                 }
-                                debug!("[UdpServer.run] receaved bytes({}) from{:?}: {:?}",amt, src, bufTarget);
-                                bufTarget.fill(0);
-                                buf.fill(0)
+                                debug!("[UdpServer.run] receaved bytes({}) from{:?}: {:?}",amt, src, buf);
+                                buf.fill(0);
+                                bufDouble.fill(0)
                             },
                             Err(err) => {
                                 warn!("[UdpServer.run] read error: {:#?}", err);
@@ -119,5 +107,9 @@ impl UdpServer {
             std::thread::sleep(reconnectDelay);
         }
         info!("[UdpServer.run] exit");
+    }
+    ///
+    fn handshake() -> [u8; 2] {
+        [SYN, EOT]
     }
 }

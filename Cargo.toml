@@ -13,3 +13,61 @@ chrono = "0.4"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 heapless = "0.7"
+
+event-listener = "^3.0"
+
+circular-queue = "^0.2"
+
+multiqueue = "^0.3"
+
+[[bin]]
+name = "async_event"
+path = "src/async_event.rs"
+
+[[bin]]
+name = "async_event_queue"
+path = "src/async_event_queue.rs"
+
+[[bin]]
+name = "drop_double"
+path = "src/traits/drop_double.rs"
+
+[[bin]]
+name = "bounds"
+path = "src/traits/bounds.rs"
+
+[[bin]]
+name = "empty_bounds"
+path = "src/traits/empty_bounds.rs"
+
+[[bin]]
+name = "multiple_bounds"
+path = "src/traits/multiple_bounds.rs"
+
+[[bin]]
+name = "bounds_option"
+path = "src/traits/bounds_option.rs"
+
+[[bin]]
+name = "new_type_ideome"
+path = "src/traits/new_type_ideome.rs"
+
+[[bin]]
+name = "associated_items"
+path = "src/traits/associated_items/associated_items.rs"
+
+[[bin]]
+name = "associated_types"
+path = "src/traits/associated_items/associated_types.rs"
+
+[[bin]]
+name = "phantom_type"
+path = "src/traits/phantom_type/phantom_type.rs"
+
+[[bin]]
+name = "add_phantom"
+path = "src/traits/phantom_type/add_phantom.rs"
+
+[[bin]]
+name = "nested_fn"
+path = "src/traits/nested_fn/nested_fn.rs"
