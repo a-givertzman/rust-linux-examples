@@ -77,3 +77,7 @@ path = "src/traits/nested_fn/nested_fn_channel.rs"
 [[bin]]
 name = "nested_fn_multiqueue"
 path = "src/traits/nested_fn/nested_fn_multiqueue.rs"
+
+[[bin]]
+name = "return_dyn_trait"
+path = "src/traits/return_dyn_trait.rs"
