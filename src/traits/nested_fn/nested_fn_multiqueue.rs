@@ -1,3 +1,5 @@
+#![allow(non_snake_case)]
+
 extern crate multiqueue;
 #[path="../../debug/mod.rs"]
 mod debug;

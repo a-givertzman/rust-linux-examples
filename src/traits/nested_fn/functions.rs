@@ -1,7 +1,9 @@
+use std::{fmt::Display, cell::RefCell, sync::Arc};
+
 use chrono::DateTime;
 
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Point<T> {
     pub name: String,
     pub value: T,
@@ -31,13 +33,17 @@ pub struct FnInput<T> {
     pub timestamp: DateTime<chrono::Utc>,
 }
 pub struct FnSum<T> {
-    pub input1: Box<dyn TOutput<T>>,
-    pub input2: Box<dyn TOutput<T>>,
+    pub input1: Arc<dyn TOutput<T>>,
+    pub input2: Arc<dyn TOutput<T>>,
     pub status: u8,
     pub timestamp: DateTime<chrono::Utc>,
 }
 pub struct FnMul;
 pub struct FnCompare;
+
+pub struct FnMetric<T> {
+    pub input: Arc<dyn TOutput<T>>,
+}
 
 pub trait TOutput<T> {
     fn out(&self) -> T;
@@ -73,5 +79,13 @@ impl<T> TOutput<T> for FnSum<T> where
         let value2 = self.input2.out();
         let sum = value1 + value2;
         sum
+    }
+}
+
+
+impl<T: Display> TOutput<String> for FnMetric<T> {
+    fn out(&self) -> String {
+        let value = self.input.out();
+        format!("insert into table values ({})", value)
     }
 }

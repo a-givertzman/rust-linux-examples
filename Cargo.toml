@@ -93,3 +93,7 @@ path = "src/traits/drop_trait.rs"
 [[bin]]
 name = "iterators"
 path = "src/traits/iterators.rs"
+
+[[bin]]
+name = "nested_sum"
+path = "src/traits/nested_fn/nested_sum.rs"
