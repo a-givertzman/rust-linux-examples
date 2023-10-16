@@ -30,7 +30,12 @@ pub struct FnInput<T> {
     pub status: u8,
     pub timestamp: DateTime<chrono::Utc>,
 }
-pub struct FnSum;
+pub struct FnSum<T> {
+    pub input1: Box<dyn TOutput<T>>,
+    pub input2: Box<dyn TOutput<T>>,
+    pub status: u8,
+    pub timestamp: DateTime<chrono::Utc>,
+}
 pub struct FnMul;
 pub struct FnCompare;
 
@@ -61,4 +66,12 @@ impl<T: Clone> TOutput<T> for FnInput<T> {
     }
 }
 
-
+impl<T> TOutput<T> for FnSum<T> where
+    T: std::ops::Add<Output = T> {
+    fn out(&self) -> T {
+        let value1 = self.input1.out();
+        let value2 = self.input2.out();
+        let sum = value1 + value2;
+        sum
+    }
+}

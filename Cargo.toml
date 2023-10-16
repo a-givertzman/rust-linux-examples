@@ -89,3 +89,7 @@ path = "src/traits/operator_overloading.rs"
 [[bin]]
 name = "drop_trait"
 path = "src/traits/drop_trait.rs"
+
+[[bin]]
+name = "iterators"
+path = "src/traits/iterators.rs"
