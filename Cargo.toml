@@ -85,3 +85,7 @@ path = "src/traits/return_dyn_trait.rs"
 [[bin]]
 name = "operator_overloading"
 path = "src/traits/operator_overloading.rs"
+
+[[bin]]
+name = "drop_trait"
+path = "src/traits/drop_trait.rs"

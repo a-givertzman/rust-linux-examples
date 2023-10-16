@@ -1,3 +1,5 @@
+mod drop_trait;
+
 #[derive(Debug)]
 struct Sheep;
 #[derive(Debug)]
