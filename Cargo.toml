@@ -123,3 +123,7 @@ path = "src/traits/trait_clone.rs"
 [[bin]]
 name = "super_traits"
 path = "src/traits/super_traits.rs"
+
+[[bin]]
+name = "mut_refs"
+path = "src/refs/mut_refs.rs"

@@ -5,13 +5,13 @@ mod debug;
 #[path="./functions.rs"]
 mod functions;
 
-use std::{collections::{HashMap, hash_map::Entry}, cell::RefCell, sync::Arc, borrow::BorrowMut, fmt::Debug};
+use std::{collections::HashMap, cell::RefCell, borrow::BorrowMut, fmt::Debug, rc::Rc};
 
 use debug::debug_session::{DebugSession, LogLevel};
-use functions::{FnSum, FnMetric, FnType};
+use functions::{FnSum, FnMetric, TInOut};
 use log::{warn, debug};
 
-use crate::functions::{FnInput, TOutput, TInput, PointType, Point};
+use crate::functions::{FnInput, TOutput, PointType, Point};
 
 ///
 /// 
@@ -55,21 +55,52 @@ fn metric(conf: &mut Conf) -> (Box<dyn TOutput<String>>, HashMap<String, InputTy
         Initial::None => panic!("Unknown type of initial"),
     }
 }
+
+
+fn fnInput<T: Debug + Clone + 'static>(inputName: String, initial: T) -> Rc<RefCell<Box<dyn TInOut<T, T>>>> {
+    Rc::new(RefCell::new(
+        Box::new(
+            FnInput { 
+                id: inputName.clone(),
+                value: initial, 
+                status: 0, 
+                timestamp: chrono::offset::Utc::now() 
+            }
+        )
+    ))
+}
+fn fnSum<T: Debug + Clone + std::ops::Add<Output = T> + 'static>(inputName: String, input1: Rc<RefCell<Box<dyn TInOut<T, T>>>>, input2: Rc<RefCell<Box<dyn TInOut<T, T>>>>) -> Rc<RefCell<Box<dyn TInOut<T, T>>>> {
+    Rc::new(RefCell::new(
+        Box::new(        
+            FnSum {
+                id: inputName,
+                input1: input1, 
+                input2: input2, 
+                status: 0, 
+                timestamp: chrono::offset::Utc::now(),
+            }
+        )
+    ))
+}
+
 ///
 /// 
-fn function<T>(conf: &mut Conf, initial: T, inputName: String) -> (HashMap<String, RefCell<Box<FnInput<T>>>>, RefCell<Box<dyn TOutput<T>>>) where 
+fn function<T>(conf: &mut Conf, initial: T, inputName: String) -> (HashMap<String, Rc<RefCell<Box<dyn TInOut<T, T>>>>>, Rc<RefCell<Box<dyn TInOut<T, T>>>>) where 
     T: Debug + Clone + std::ops::Add<Output = T> + 'static {
     match conf.name().as_str() {
         "input" => {
             println!("input function");
-            let input = RefCell::new(Box::new(
-                FnInput::<T> { 
-                    id: inputName.clone(),
-                    value: initial, 
-                    status: 0, 
-                    timestamp: chrono::offset::Utc::now() 
-                }
-            ));
+            let mut input = fnInput(inputName.clone(), initial);
+            let a = input.borrow_mut();
+            // a.add()
+            // let input = Rc::new(RefCell::new(Box::new(
+            //     FnInput::<T> { 
+            //         id: inputName.clone(),
+            //         value: initial, 
+            //         status: 0, 
+            //         timestamp: chrono::offset::Utc::now() 
+            //     }
+            // )));
             (
                 HashMap::from([
                     (inputName, input.clone())
@@ -86,16 +117,10 @@ fn function<T>(conf: &mut Conf, initial: T, inputName: String) -> (HashMap<Strin
             let (inputs2, input2) = function::<T>(conf.nested(&in2Name), initial, in2Name);
             inputs.extend(inputs1);
             inputs.extend(inputs2);
+            let func = fnSum(inputName, input1, input2);
             (
                 inputs,
-                RefCell::new(Box::new(         
-                    FnSum::<T> { 
-                        input1: input1, 
-                        input2: input2, 
-                        status: 0, 
-                        timestamp: chrono::offset::Utc::now(),
-                    }
-                ))
+                func
             )
         }
         _ => panic!("Unknown function name: {:?}", conf.name())
@@ -122,22 +147,25 @@ fn main() {
         ])
     };
 
-    let (metric, mut inputs) = metric(&mut conf);
+    let (metric, inputs) = metric(&mut conf);
     println!("INPUTS: {:?}", &inputs);
     for point in points() {
         let pointName = point.name();
         debug!("received point: {:?}", point);
-        match inputs.get_mut(&pointName) {
-            Some(input) => {
+        match inputs.get(&pointName) {
+            Some(mut input) => {
                 debug!("input found: {:?}", &input);
                 match point.clone() {
                     PointType::Bool(point) => {
                         match input {
                             InputType::Bool(input) => {
-                                let input = input.clone();
                                 debug!("adding point to input...");
-                                input.borrow_mut().add(point);
+                                let mut input = input.to_owned().to_owned();
+                                let mut input = input.borrow_mut();
+                                // input.add(point);
+                                // input.get_mut().add(point);
                                 debug!("adding point to input - done");
+                                debug!("modified input: {:?}", input);
                             },
                             _ => warn!("Incompatible type of: {:?}", point),
                         }                    
@@ -145,8 +173,10 @@ fn main() {
                     PointType::Int(point) => {
                         match input {
                             InputType::Int(input) => {
-                                let input = input.clone();
-                                input.borrow_mut().add(point);
+                                debug!("adding point to input...");
+                                // input.get_mut().add(point);
+                                debug!("adding point to input - done");
+                                debug!("modified input: {:?}", input);
                             },
                             _ => warn!("Incompatible type of: {:?}", point),
                         }
@@ -155,8 +185,10 @@ fn main() {
                     PointType::Float(point) => {
                         match input {
                             InputType::Float(input) => {
-                                let input = input.clone();
-                                input.borrow_mut().add(point);
+                                debug!("adding point to input...");
+                                // input.get_mut().add(point);
+                                debug!("adding point to input - done");
+                                debug!("modified input: {:?}", input);
                             },
                             _ => warn!("Incompatible type of: {:?}", point),
                         }                    
@@ -203,9 +235,9 @@ enum Initial {
 
 #[derive(Debug, Clone)]
 enum InputType {
-    Bool(RefCell<Box<FnInput<bool>>>),
-    Int(RefCell<Box<FnInput<i64>>>),
-    Float(RefCell<Box<FnInput<f64>>>),
+    Bool(Rc<RefCell<Box<dyn TInOut<bool, bool>>>>),
+    Int(Rc<RefCell<Box<dyn TInOut<i64, i64>>>>),
+    Float(Rc<RefCell<Box<dyn TInOut<f64, f64>>>>),
 }
 
 
