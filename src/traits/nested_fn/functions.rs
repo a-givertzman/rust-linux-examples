@@ -1,4 +1,4 @@
-use std::{fmt::Display, cell::RefCell, sync::Arc};
+use std::{fmt::{Display, Debug}, cell::RefCell, sync::Arc};
 
 use chrono::DateTime;
 
@@ -35,8 +35,9 @@ pub enum FnType {
 
 
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct FnInput<T> {
+    pub id: String,
     pub value: T,
     pub status: u8,
     pub timestamp: DateTime<chrono::Utc>,
@@ -71,12 +72,13 @@ impl<T: std::fmt::Debug> TInput<T> for FnInput<T> {
         self.value = point.value;
         self.status = point.status;
         self.timestamp = point.timestamp;
-        // println!("FnInput<{}>.add | value: {:?}", std::any::type_name::<T>(), &self.value)
+        println!("FnInput({})<{}>.add | value: {:?}", self.id, std::any::type_name::<T>(), &self.value);
     }
 }
 
-impl<T: Clone> TOutput<T> for FnInput<T> {
+impl<T: Debug + Clone> TOutput<T> for FnInput<T> {
     fn out(&self) -> T {
+        println!("FnInput({})<{}>.out | value: {:?}", self.id, std::any::type_name::<T>(), &self.value);
         self.value.clone()
     }
 }

@@ -21,7 +21,7 @@ fn points() ->Vec<PointType> {
         PointType::Int(   Point { value:13,     name:String::from("int1"),   status: 0, timestamp: chrono::offset::Utc::now() }),
         PointType::Int(   Point { value:43,     name:String::from("int1"),   status: 0, timestamp: chrono::offset::Utc::now() }),
         PointType::Bool(  Point { value:false,  name:String::from("bool1"),  status: 0, timestamp: chrono::offset::Utc::now() }),
-        PointType::Float( Point {value: 12.77,  name:String::from("float1"), status: 0, timestamp: chrono::offset::Utc::now() }),
+        PointType::Float( Point {value: 12.77,  name:String::from("input1"), status: 0, timestamp: chrono::offset::Utc::now() }),
         PointType::Int(   Point { value:65,     name:String::from("int1"),   status: 0, timestamp: chrono::offset::Utc::now() }),
     ]
 }
@@ -64,6 +64,7 @@ fn function<T>(conf: &mut Conf, initial: T, inputName: String) -> (HashMap<Strin
             println!("input function");
             let input = RefCell::new(Box::new(
                 FnInput::<T> { 
+                    id: inputName.clone(),
                     value: initial, 
                     status: 0, 
                     timestamp: chrono::offset::Utc::now() 
@@ -81,8 +82,8 @@ fn function<T>(conf: &mut Conf, initial: T, inputName: String) -> (HashMap<Strin
             let mut inputs = HashMap::new();
             let in1Name = String::from("input1");
             let in2Name = String::from("input2");
-            let (mut inputs1, input1) = function::<T>(conf.nested(&in1Name), initial.clone(), in1Name);
-            let (mut inputs2, input2) = function::<T>(conf.nested(&in2Name), initial, in2Name);
+            let (inputs1, input1) = function::<T>(conf.nested(&in1Name), initial.clone(), in1Name);
+            let (inputs2, input2) = function::<T>(conf.nested(&in2Name), initial, in2Name);
             inputs.extend(inputs1);
             inputs.extend(inputs2);
             (
@@ -122,17 +123,21 @@ fn main() {
     };
 
     let (metric, mut inputs) = metric(&mut conf);
+    println!("INPUTS: {:?}", &inputs);
     for point in points() {
         let pointName = point.name();
-        debug!("point: {:?}", point);
+        debug!("received point: {:?}", point);
         match inputs.get_mut(&pointName) {
             Some(input) => {
+                debug!("input found: {:?}", &input);
                 match point.clone() {
                     PointType::Bool(point) => {
                         match input {
                             InputType::Bool(input) => {
                                 let input = input.clone();
+                                debug!("adding point to input...");
                                 input.borrow_mut().add(point);
+                                debug!("adding point to input - done");
                             },
                             _ => warn!("Incompatible type of: {:?}", point),
                         }                    
@@ -196,6 +201,7 @@ enum Initial {
 }
 
 
+#[derive(Debug, Clone)]
 enum InputType {
     Bool(RefCell<Box<FnInput<bool>>>),
     Int(RefCell<Box<FnInput<i64>>>),
