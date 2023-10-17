@@ -5,13 +5,16 @@ mod debug;
 #[path="./functions.rs"]
 mod functions;
 
-use std::{collections::HashMap, cell::RefCell, sync::Arc, borrow::BorrowMut};
+use std::{collections::{HashMap, hash_map::Entry}, cell::RefCell, sync::Arc, borrow::BorrowMut, fmt::Debug};
 
 use debug::debug_session::{DebugSession, LogLevel};
 use functions::{FnSum, FnMetric, FnType};
+use log::{warn, debug};
 
 use crate::functions::{FnInput, TOutput, TInput, PointType, Point};
 
+///
+/// 
 fn points() ->Vec<PointType> {
     vec![
         PointType::Bool(  Point { value:true,   name:String::from("bool1"),  status: 0, timestamp: chrono::offset::Utc::now() }),
@@ -22,29 +25,29 @@ fn points() ->Vec<PointType> {
         PointType::Int(   Point { value:65,     name:String::from("int1"),   status: 0, timestamp: chrono::offset::Utc::now() }),
     ]
 }
-
-
-fn metric(conf: &mut Conf) -> (Box<dyn TOutput<String>>, Vec<InputType>) {
+///
+/// 
+fn metric(conf: &mut Conf) -> (Box<dyn TOutput<String>>, HashMap<String, InputType>) {
     match conf.initial {
         Initial::Int(initial) => {
-            let (func, inputs) = function::<i64>(conf, initial);
+            let (inputs, func) = function::<i64>(conf, initial, String::new());
             (
                 Box::new(FnMetric::<i64> {
                     input: func,
                 }),
-                inputs.into_iter().map(|v| {
-                    InputType::Int(v)
+                inputs.into_iter().map(|(key,v)| {
+                    (key, InputType::Int(v))
                 }).collect()
             )
         },
         Initial::Float(initial) => {
-            let (func, inputs) = function::<f64>(conf, initial);
+            let (inputs, func) = function::<f64>(conf, initial, String::new());
             (
                 Box::new(FnMetric::<f64> {
                     input: func,
                 }),
-                inputs.into_iter().map(|v| {
-                    InputType::Float(v)
+                inputs.into_iter().map(|(key, v)| {
+                    (key, InputType::Float(v))
                 }).collect()
             )
         },
@@ -52,45 +55,52 @@ fn metric(conf: &mut Conf) -> (Box<dyn TOutput<String>>, Vec<InputType>) {
         Initial::None => panic!("Unknown type of initial"),
     }
 }
-fn function<T: Clone + std::ops::Add<Output = T> + 'static>(conf: &mut Conf, initial: T) -> (Arc<dyn TOutput<T>>, Vec<Arc<FnInput<T>>>) {
-    // T: Clone + std::ops::Add<Output = T> + 'static {
+///
+/// 
+fn function<T>(conf: &mut Conf, initial: T, inputName: String) -> (HashMap<String, RefCell<Box<FnInput<T>>>>, RefCell<Box<dyn TOutput<T>>>) where 
+    T: Debug + Clone + std::ops::Add<Output = T> + 'static {
     match conf.name().as_str() {
         "input" => {
             println!("input function");
-            let mut input = Arc::new(
+            let input = RefCell::new(Box::new(
                 FnInput::<T> { 
                     value: initial, 
                     status: 0, 
                     timestamp: chrono::offset::Utc::now() 
                 }
-            );
+            ));
             (
-                input.clone(),
-                vec![input]
+                HashMap::from([
+                    (inputName, input.clone())
+                ]),
+                input
             )
         },
         "sum" => {
             println!("sum function");
-            let mut inputs = vec![];
-            let (input1, mut inputs1) = function::<T>(conf.nested("input1"), initial.clone());
-            let (input2, mut inputs2) = function::<T>(conf.nested("input2"), initial);
-            inputs.append(&mut inputs1);
-            inputs.append(&mut inputs2);
+            let mut inputs = HashMap::new();
+            let in1Name = String::from("input1");
+            let in2Name = String::from("input2");
+            let (mut inputs1, input1) = function::<T>(conf.nested(&in1Name), initial.clone(), in1Name);
+            let (mut inputs2, input2) = function::<T>(conf.nested(&in2Name), initial, in2Name);
+            inputs.extend(inputs1);
+            inputs.extend(inputs2);
             (
-                Arc::new(                
+                inputs,
+                RefCell::new(Box::new(         
                     FnSum::<T> { 
                         input1: input1, 
                         input2: input2, 
                         status: 0, 
                         timestamp: chrono::offset::Utc::now(),
                     }
-                ),
-                inputs
+                ))
             )
         }
         _ => panic!("Unknown function name: {:?}", conf.name())
     }
 }
+
 
 fn main() {
     DebugSession::init(LogLevel::Debug);
@@ -111,40 +121,48 @@ fn main() {
         ])
     };
 
-    let testData = vec![0, 1, 2, 3];
-
     let (metric, mut inputs) = metric(&mut conf);
     for point in points() {
-        for input in &mut inputs {
-            match point.clone() {
-                PointType::Bool(point) => {
-                    match input {
-                        InputType::Bool(input) => {
-                            input.add(point.clone());
-                        },
-                        _ => panic!("Incompatible type of: {:?}", point),
-                    }                    
-                },
-                PointType::Int(point) => {
-                    match input {
-                        InputType::Int(input) => {
-                            input.borrow_mut().add(point);
-                        },
-                        _ => panic!("Incompatible type of: {:?}", point),
-                    }
-                    
-                },
-                PointType::Float(point) => {
-                    match input {
-                        InputType::Float(input) => {
-                            input.borrow_mut().add(point);
-                        },
-                        _ => panic!("Incompatible type of: {:?}", point),
-                    }                    
-                    
-                },
-            }
-        }
+        let pointName = point.name();
+        debug!("point: {:?}", point);
+        match inputs.get_mut(&pointName) {
+            Some(input) => {
+                match point.clone() {
+                    PointType::Bool(point) => {
+                        match input {
+                            InputType::Bool(input) => {
+                                let input = input.clone();
+                                input.borrow_mut().add(point);
+                            },
+                            _ => warn!("Incompatible type of: {:?}", point),
+                        }                    
+                    },
+                    PointType::Int(point) => {
+                        match input {
+                            InputType::Int(input) => {
+                                let input = input.clone();
+                                input.borrow_mut().add(point);
+                            },
+                            _ => warn!("Incompatible type of: {:?}", point),
+                        }
+                        
+                    },
+                    PointType::Float(point) => {
+                        match input {
+                            InputType::Float(input) => {
+                                let input = input.clone();
+                                input.borrow_mut().add(point);
+                            },
+                            _ => warn!("Incompatible type of: {:?}", point),
+                        }                    
+                        
+                    },
+                }
+            },
+            None => {
+                warn!("Input {:?} - not wound", &pointName);
+            },
+        };
         let out = metric.out();
         println!("metric out: {:?}", out);
     }
@@ -179,9 +197,9 @@ enum Initial {
 
 
 enum InputType {
-    Bool(Arc<FnInput<bool>>),
-    Int(Arc<FnInput<i64>>),
-    Float(Arc<FnInput<f64>>),
+    Bool(RefCell<Box<FnInput<bool>>>),
+    Int(RefCell<Box<FnInput<i64>>>),
+    Float(RefCell<Box<FnInput<f64>>>),
 }
 
 
