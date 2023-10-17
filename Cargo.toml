@@ -22,6 +22,8 @@ multiqueue = "^0.3"
 
 rand = "^0.8"
 
+csv = "^1.3"
+
 [[bin]]
 name = "async_event"
 path = "src/async_event.rs"
@@ -97,3 +99,27 @@ path = "src/traits/iterators.rs"
 [[bin]]
 name = "nested_sum"
 path = "src/traits/nested_fn/nested_sum.rs"
+
+[[bin]]
+name = "impl_trait_as_argument_type"
+path = "src/traits/impl_trait/impl_trait_as_argument_type.rs"
+
+[[bin]]
+name = "impl_trait_as_return_type"
+path = "src/traits/impl_trait/impl_trait_as_return_type.rs"
+
+[[bin]]
+name = "impl_trait_as_return_closure"
+path = "src/traits/impl_trait/impl_trait_as_return_closure.rs"
+
+[[bin]]
+name = "impl_trait_as_return_iterator"
+path = "src/traits/impl_trait/impl_trait_as_return_iterator.rs"
+
+[[bin]]
+name = "trait_clone"
+path = "src/traits/trait_clone.rs"
+
+[[bin]]
+name = "super_traits"
+path = "src/traits/super_traits.rs"

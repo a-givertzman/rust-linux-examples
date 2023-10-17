@@ -16,8 +16,8 @@ use log::{warn, info};
 use crate::{debug::debug_session::{DebugSession, LogLevel}, functions::{FnType, FnInput, TInput, TOutput}, prodicer::ProducerQueue};
 
 
-const QSIZE: usize = 1_000_000;
-const ITERATIONS: usize = QSIZE;
+const QSIZE: usize = 10_000;
+const ITERATIONS: usize = 100_000_000;
 
 
 fn main() {

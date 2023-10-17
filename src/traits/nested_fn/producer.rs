@@ -51,10 +51,10 @@ impl ProducerChannel {
                         warn!("Error write to queue: {:?}", err);
                     },
                 }
-                thread::sleep(Duration::from_micros(10));
+                // thread::sleep(Duration::from_micros(10));
             }
             info!("Sent points: {}", sent);
-            thread::sleep(Duration::from_secs_f32(0.1));
+            // thread::sleep(Duration::from_secs_f32(0.1));
             // debug!("Task({}).run | calculating step - done ({:?})", name, cycle.elapsed());
         }).unwrap();    
     }
@@ -88,21 +88,30 @@ impl ProducerQueue {
             let mut random = rand::thread_rng();
             let max = points.len();
             let mut sent = 0;
+            let mut trySend;
+            let mut retryTimeout = 1;   // ms
             for _ in 0..iterations {
                 let index = random.gen_range(0..max);
                 let point = &points[index];
-                match send.try_send(point.clone()) {
-                    Ok(_) => {
-                        sent += 1;
-                    },
-                    Err(err) => {
-                        warn!("Error write to queue: {:?}", err);
-                    },
+                trySend = true;
+                while trySend {
+                    match send.try_send(point.clone()) {
+                        Ok(_) => {
+                            sent += 1;
+                            trySend = false;
+                            retryTimeout = 1;
+                        },
+                        Err(err) => {
+                            // warn!("Error write to queue: {:?}", err);
+                            thread::sleep(Duration::from_micros(retryTimeout));
+                            retryTimeout *= 2;
+                        },
+                    }
                 }
-                thread::sleep(Duration::from_micros(10));
+                // thread::sleep(Duration::from_micros(10));
             }
             info!("Sent points: {}", sent);
-            thread::sleep(Duration::from_secs_f32(0.1));
+            // thread::sleep(Duration::from_secs_f32(0.1));
             // debug!("Task({}).run | calculating step - done ({:?})", name, cycle.elapsed());
         }).unwrap();    
     }

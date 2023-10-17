@@ -17,7 +17,7 @@ use crate::{
     prodicer::ProducerChannel,
 };
 
-const ITERATIONS: usize = 1_000_000;
+const ITERATIONS: usize = 100_000_000;
 
 
 
