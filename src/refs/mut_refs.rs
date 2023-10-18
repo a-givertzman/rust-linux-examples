@@ -1,12 +1,16 @@
 #![allow(non_snake_case)]
 
+#[path="../mod.rs"]
+mod fn_inputs;
+#[path="../mod.rs"]
+mod t_in_out;
+
 use std::{cell::RefCell, rc::Rc, fmt::Debug, collections::HashMap};
 
-pub trait TInOut<T>: Debug {
-    fn add(&mut self, value: T) {
+use t_in_out::traits::nested_fn::t_in_out::TInOut;
 
-    }
-}
+use crate::{fn_inputs::traits::nested_fn::fn_inputs::FnInputs, t_in_out::traits::nested_fn::fn_inputs::InputType};
+
 
 #[derive(Debug, Clone)]
 pub struct Bool(bool);
@@ -21,14 +25,17 @@ impl std::ops::Add for Bool {
 struct Mutable<T> {
     inner: T,
 }
-impl<T: Debug + Clone + std::ops::Add<Output = T>> TInOut<T> for Mutable<T> {
+impl<T: Debug + Clone + std::ops::Add<Output = T>> TInOut<T, T> for Mutable<T> {
     fn add(&mut self, value: T) {
         self.inner = value;
+    }
+    fn out(&self) -> T {
+        todo!()
     }
 }
 
 
-fn fnAdd<T: Debug + Clone + std::ops::Add<Output = T> + 'static>(initial: T) -> Rc<RefCell<Box<dyn TInOut<T>>>> {
+fn fnAdd<T: Debug + Clone + std::ops::Add<Output = T> + 'static>(initial: T) -> Rc<RefCell<Box<dyn TInOut<T, T>>>> {
     Rc::new(RefCell::new(
         Box::new(
             Mutable {inner: initial}
@@ -78,97 +85,11 @@ fn main() {
 
     inputs.getBool("ref0").borrow_mut().add(Bool(false));
     inputs.getInt("ref1").borrow_mut().add(3);
-    inputs.getFloat("ref3").borrow_mut().add(3.3);
+    inputs.getFloat("ref2").borrow_mut().add(3.3);
 
     println!("\n");
     println!("Chanjed in the FnInputs");
     println!("ref0: {:?}", ref0);
     println!("ref1: {:?}", ref1);
     println!("ref2: {:?}", ref2);
-}
-
-///
-/// A container for storing FnInput by name
-pub struct FnInputs {
-    refs: HashMap<String, InputType>,
-}
-impl FnInputs {
-    ///
-    /// Creates new container for storing FnInput
-    pub fn new() -> Self {
-        Self {
-            refs: HashMap::new()
-        }
-    }
-    ///
-    /// Adding new input refeerence
-    pub fn add(&mut self, name: impl Into<String>, input: InputType) {
-        self.refs.insert(name.into(), input);
-    }
-    ///
-    /// Adding new Bool input refeerence
-    pub fn addBool(&mut self, name: impl Into<String>, input: Rc<RefCell<Box<dyn TInOut<Bool>>>>) {
-        self.refs.insert(name.into(), InputType::Bool(input));
-    }
-    ///
-    /// Adding new Int input refeerence
-    pub fn addInt(&mut self, name: impl Into<String>, input: Rc<RefCell<Box<dyn TInOut<i64>>>>) {
-        self.refs.insert(name.into(), InputType::Int(input));
-    }
-    ///
-    /// Adding new Float input refeerence
-    pub fn addFloat(&mut self, name: impl Into<String>, input: Rc<RefCell<Box<dyn TInOut<f64>>>>) {
-        self.refs.insert(name.into(), InputType::Float(input));
-    }
-    ///
-    /// Returns input by it's name
-    pub fn get(&self, name: &str) -> &InputType {
-        self.refs.get(name.into()).unwrap()
-    }
-    ///
-    /// Returns input::Bool by it's name
-    pub fn getBool(&self, name: &str) -> Rc<RefCell<Box<dyn TInOut<Bool>>>> {
-        match self.refs.get(name.into()) {
-            Some(input) => {
-                match input {
-                    InputType::Bool(input) => input.clone(),
-                    _ => panic!("invalid input {:?} type BOOL, ", name),
-                }
-            },
-            None => panic!("Unknown input name {:?}", name),
-        }
-    }
-    ///
-    /// Returns input::Int by it's name
-    pub fn getInt(&self, name: &str) -> Rc<RefCell<Box<dyn TInOut<i64>>>> {
-        match self.refs.get(name.into()) {
-            Some(input) => {
-                match input {
-                    InputType::Int(input) => input.clone(),
-                    _ => panic!("invalid input {:?} type INT, ", name),
-                }
-                
-            },
-            None => panic!("Unknown input name {:?}", name),
-        }
-    }
-    ///
-    /// Returns input::Float by it's name
-    pub fn getFloat(&self, name: &str) -> Rc<RefCell<Box<dyn TInOut<f64>>>> {
-        match self.refs.get(name.into()) {
-            Some(input) => {
-                match input {
-                    InputType::Float(input) => input.clone(),
-                    _ => panic!("invalid input {:?} type FLOAT, ", name),
-                }                
-            },
-            None => panic!("Unknown input name {:?}", name),
-        }
-    }
-}
-
-pub enum InputType {
-    Bool(Rc<RefCell<Box<dyn TInOut<Bool>>>>),
-    Int(Rc<RefCell<Box<dyn TInOut<i64>>>>),
-    Float(Rc<RefCell<Box<dyn TInOut<f64>>>>),
 }

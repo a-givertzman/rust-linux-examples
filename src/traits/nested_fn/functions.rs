@@ -1,33 +1,15 @@
 #![allow(non_snake_case)]
 
+// #[path="./traits/nested_fn/t_in_out.rs"]
+mod point;
+mod t_in_out;
+
 use std::{fmt::{Display, Debug}, cell::RefCell, rc::Rc};
 
 use chrono::DateTime;
 
+use self::{t_in_out::{TInOut, TInput, TOutput}, point::Point};
 
-#[derive(Clone, Debug)]
-pub struct Point<T> {
-    pub name: String,
-    pub value: T,
-    pub status: u8,
-    pub timestamp: DateTime<chrono::Utc>,
-}
-
-#[derive(Debug, Clone)]
-pub enum PointType {
-    Bool(Point<bool>),
-    Int(Point<i64>),
-    Float(Point<f64>),
-}
-impl PointType {
-    pub fn name(&self) -> String {
-        match self {
-            PointType::Bool(point) => point.name.clone(),
-            PointType::Int(point) => point.name.clone(),
-            PointType::Float(point) => point.name.clone(),
-        }
-    }
-}
 
 pub enum FnType {
     Bool(FnInput<bool>),
@@ -59,21 +41,6 @@ pub struct FnCompare;
 pub struct FnMetric<T> {
     pub input: Rc<RefCell<Box<dyn TInOut<T, T>>>>,
 }
-
-pub trait TOutput<T>: Debug {
-    fn out(&self) -> T;
-}
-
-
-pub trait TInput<T>: Debug {
-    fn add(&mut self, point: Point<T>);
-}
-
-pub trait TInOut<I, Q>: Debug {
-    fn add(&mut self, point: Point<I>);
-    fn out(&self) -> Q;
-}
-
 
 impl<I> TInOut<I, I> for FnInput<I> where 
     I: std::fmt::Debug + Clone {
