@@ -1,19 +1,20 @@
 #![allow(non_snake_case)]
 
+#[path = "../debug_session/mod.rs"]
+mod debug_session;
+#[path = "../traits/mod.rs"]
+mod traits;
+
 extern crate multiqueue;
-#[path="../../debug/mod.rs"]
-mod debug;
-#[path="./functions.rs"]
-mod functions;
-#[path="./producer.rs"]
-mod prodicer;
+use multiqueue::mpmc_queue;
 
 use std::{collections::HashMap, time::{Instant, Duration}, thread};
-use functions::PointType;
-use multiqueue::mpmc_queue;
 use log::{warn, info};
 
-use crate::{debug::debug_session::{DebugSession, LogLevel}, functions::{FnType, FnInput, TInput, TOutput}, prodicer::ProducerQueue};
+use crate::{
+    debug_session::debug_session::{DebugSession, LogLevel},
+    traits::nested_fn::{functions::{FnInput, FnType}, producer::ProducerQueue, point::PointType, t_in_out::TInOut}, 
+};
 
 
 const QSIZE: usize = 10_000;
@@ -34,9 +35,9 @@ fn main() {
     thread::sleep(Duration::from_secs_f32(1.1));
     
     let mut inputs: HashMap<String, FnType> = HashMap::from([
-        (String::from("float1"), FnType::Float( FnInput { value: 0.0, status: 0, timestamp: chrono::offset::Utc::now() } )), 
-        (String::from("int1"), FnType::Int( FnInput { value: 0, status: 0, timestamp: chrono::offset::Utc::now() } )), 
-        (String::from("bool1"), FnType::Bool( FnInput { value: false, status: 0, timestamp: chrono::offset::Utc::now() } )), 
+        (String::from("float1"), FnType::Float( FnInput { id: String::from("float1"), value: 0.0, status: 0, timestamp: chrono::offset::Utc::now() } )), 
+        (String::from("int1"), FnType::Int( FnInput { id: String::from("float1"), value: 0, status: 0, timestamp: chrono::offset::Utc::now() } )), 
+        (String::from("bool1"), FnType::Bool( FnInput { id: String::from("float1"), value: false, status: 0, timestamp: chrono::offset::Utc::now() } )), 
     ]);
     info!("Receiving...: {}", ITERATIONS);
     let mut received = 0;

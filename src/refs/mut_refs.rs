@@ -1,25 +1,17 @@
 #![allow(non_snake_case)]
 
-#[path="../mod.rs"]
-mod fn_inputs;
-#[path="../mod.rs"]
-mod t_in_out;
+#[path = "../debug_session/mod.rs"]
+mod debug_session;
+#[path = "../traits/mod.rs"]
+mod traits;
 
 use std::{cell::RefCell, rc::Rc, fmt::Debug, collections::HashMap};
 
-use t_in_out::traits::nested_fn::t_in_out::TInOut;
+use traits::nested_fn::t_in_out::TInOut;
 
-use crate::{fn_inputs::traits::nested_fn::fn_inputs::FnInputs, t_in_out::traits::nested_fn::fn_inputs::InputType};
+use crate::traits::nested_fn::{fn_inputs::{FnInputs, InputType}, bool::Bool};
 
 
-#[derive(Debug, Clone)]
-pub struct Bool(bool);
-impl std::ops::Add for Bool {
-    type Output = Bool;
-    fn add(self, rhs: Self) -> Self::Output {
-        Bool(self.0 | rhs.0)
-    }
-}
 
 #[derive(Debug)]
 struct Mutable<T> {

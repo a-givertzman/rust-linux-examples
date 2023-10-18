@@ -74,11 +74,11 @@ path = "src/traits/phantom_type/add_phantom.rs"
 
 [[bin]]
 name = "nested_fn_channel"
-path = "src/traits/nested_fn/nested_fn_channel.rs"
+path = "src/test_nested_fn/nested_fn_channel.rs"
 
 [[bin]]
 name = "nested_fn_multiqueue"
-path = "src/traits/nested_fn/nested_fn_multiqueue.rs"
+path = "src/test_nested_fn/nested_fn_multiqueue.rs"
 
 [[bin]]
 name = "return_dyn_trait"
@@ -98,7 +98,7 @@ path = "src/traits/iterators.rs"
 
 [[bin]]
 name = "nested_sum"
-path = "src/traits/nested_fn/nested_sum.rs"
+path = "src/test_nested_fn/nested_sum.rs"
 
 [[bin]]
 name = "impl_trait_as_argument_type"

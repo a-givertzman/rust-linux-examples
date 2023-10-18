@@ -1,13 +1,12 @@
-mod point;
 use std::{sync::mpsc::Sender, thread, time::Duration};
 use multiqueue::MPMCSender;
 use rand::Rng;
 
 use log::{debug, warn, info};
 
-use crate::prodicer::point::{Point, PointType};
+use crate::traits::nested_fn::point::{Point, PointType};
 
-// use crate::functions::{PointType, Point};
+
 
 fn points() ->Vec<PointType> {
     vec![

@@ -1,6 +1,6 @@
 use std::{collections::HashMap, rc::Rc, cell::RefCell};
 
-use crate::{t_in_out::traits::nested_fn::t_in_out::TInOut, Bool};
+use crate::traits::nested_fn::{t_in_out::TInOut, bool::Bool};
 
 
 ///

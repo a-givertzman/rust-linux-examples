@@ -1,14 +1,10 @@
 #![allow(non_snake_case)]
 
-// #[path="./traits/nested_fn/t_in_out.rs"]
-mod point;
-mod t_in_out;
-
 use std::{fmt::{Display, Debug}, cell::RefCell, rc::Rc};
 
 use chrono::DateTime;
 
-use self::{t_in_out::{TInOut, TInput, TOutput}, point::Point};
+use crate::traits::nested_fn::{t_in_out::{TInOut, TInput, TOutput}, point::Point};
 
 
 pub enum FnType {
@@ -29,8 +25,8 @@ pub struct FnInput<T> {
 #[derive(Debug)]
 pub struct FnSum<T> {
     pub id: String,
-    pub input1: Rc<RefCell<Box<dyn TInOut<T, T>>>>,
-    pub input2: Rc<RefCell<Box<dyn TInOut<T, T>>>>,
+    pub input1: Rc<RefCell<Box<dyn TInOut<Point<T>, T>>>>,
+    pub input2: Rc<RefCell<Box<dyn TInOut<Point<T>, T>>>>,
     pub status: u8,
     pub timestamp: DateTime<chrono::Utc>,
 }
@@ -39,10 +35,10 @@ pub struct FnCompare;
 
 #[derive(Debug)]
 pub struct FnMetric<T> {
-    pub input: Rc<RefCell<Box<dyn TInOut<T, T>>>>,
+    pub input: Rc<RefCell<Box<dyn TInOut<Point<T>, T>>>>,
 }
 
-impl<I> TInOut<I, I> for FnInput<I> where 
+impl<I> TInOut<Point<I>, I> for FnInput<I> where 
     I: std::fmt::Debug + Clone {
     fn add(&mut self, point: Point<I>) {
         self.value = point.value;
@@ -73,7 +69,7 @@ impl<T: Debug + Clone> TOutput<T> for FnInput<T> {
     }
 }
 
-impl<I: std::ops::Add<Output = I>> TInOut<I, I> for FnSum<I> where 
+impl<I: std::ops::Add<Output = I>> TInOut<Point<I>, I> for FnSum<I> where 
     I: std::fmt::Debug + Clone {
     fn add(&mut self, value: Point<I>) {
         println!("FnSum({})<{}>.add | value: --", self.id, std::any::type_name::<I>());

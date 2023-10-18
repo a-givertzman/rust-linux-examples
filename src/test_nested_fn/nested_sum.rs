@@ -1,17 +1,23 @@
 #![allow(non_snake_case)]
 
-#[path="../../debug/mod.rs"]
-mod debug;
-#[path="./functions.rs"]
-mod functions;
+#[path = "../debug_session/mod.rs"]
+mod debug_session;
+#[path = "../traits/mod.rs"]
+mod traits;
 
 use std::{collections::HashMap, cell::RefCell, borrow::BorrowMut, fmt::Debug, rc::Rc};
-
-use debug::debug_session::{DebugSession, LogLevel};
-use functions::{FnSum, FnMetric, TInOut};
 use log::{warn, debug};
+use traits::nested_fn::{t_in_out::TInOut, functions::{FnInput, FnSum}};
 
-use crate::functions::{FnInput, TOutput, PointType, Point};
+use crate::{
+    debug_session::debug_session::{DebugSession, LogLevel}, 
+    traits::nested_fn::{
+        t_in_out::TOutput, 
+        point::{Point, PointType},
+        functions::FnMetric,
+    },
+};
+
 
 ///
 /// 
@@ -57,7 +63,7 @@ fn metric(conf: &mut Conf) -> (Box<dyn TOutput<String>>, HashMap<String, InputTy
 }
 
 
-fn fnInput<T: Debug + Clone + 'static>(inputName: String, initial: T) -> Rc<RefCell<Box<dyn TInOut<T, T>>>> {
+fn fnInput<T: Debug + Clone + 'static>(inputName: String, initial: T) -> Rc<RefCell<Box<dyn TInOut<Point<T>, T>>>> {
     Rc::new(RefCell::new(
         Box::new(
             FnInput { 
@@ -69,7 +75,7 @@ fn fnInput<T: Debug + Clone + 'static>(inputName: String, initial: T) -> Rc<RefC
         )
     ))
 }
-fn fnSum<T: Debug + Clone + std::ops::Add<Output = T> + 'static>(inputName: String, input1: Rc<RefCell<Box<dyn TInOut<T, T>>>>, input2: Rc<RefCell<Box<dyn TInOut<T, T>>>>) -> Rc<RefCell<Box<dyn TInOut<T, T>>>> {
+fn fnSum<T: Debug + Clone + std::ops::Add<Output = T> + 'static>(inputName: String, input1: Rc<RefCell<Box<dyn TInOut<Point<T>, T>>>>, input2: Rc<RefCell<Box<dyn TInOut<Point<T>, T>>>>) -> Rc<RefCell<Box<dyn TInOut<Point<T>, T>>>> {
     Rc::new(RefCell::new(
         Box::new(        
             FnSum {
@@ -85,7 +91,7 @@ fn fnSum<T: Debug + Clone + std::ops::Add<Output = T> + 'static>(inputName: Stri
 
 ///
 /// 
-fn function<T>(conf: &mut Conf, initial: T, inputName: String) -> (HashMap<String, Rc<RefCell<Box<dyn TInOut<T, T>>>>>, Rc<RefCell<Box<dyn TInOut<T, T>>>>) where 
+fn function<T>(conf: &mut Conf, initial: T, inputName: String) -> (HashMap<String, Rc<RefCell<Box<dyn TInOut<Point<T>, T>>>>>, Rc<RefCell<Box<dyn TInOut<Point<T>, T>>>>) where 
     T: Debug + Clone + std::ops::Add<Output = T> + 'static {
     match conf.name().as_str() {
         "input" => {
@@ -235,9 +241,9 @@ enum Initial {
 
 #[derive(Debug, Clone)]
 enum InputType {
-    Bool(Rc<RefCell<Box<dyn TInOut<bool, bool>>>>),
-    Int(Rc<RefCell<Box<dyn TInOut<i64, i64>>>>),
-    Float(Rc<RefCell<Box<dyn TInOut<f64, f64>>>>),
+    Bool(Rc<RefCell<Box<dyn TInOut<Point<bool>, bool>>>>),
+    Int(Rc<RefCell<Box<dyn TInOut<Point<i64>, i64>>>>),
+    Float(Rc<RefCell<Box<dyn TInOut<Point<f64>, f64>>>>),
 }
 
 
