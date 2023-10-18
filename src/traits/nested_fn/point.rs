@@ -1,5 +1,7 @@
 use chrono::DateTime;
 
+use super::bool::Bool;
+
 
 #[derive(Clone, Debug)]
 pub struct Point<T> {
@@ -12,7 +14,7 @@ pub struct Point<T> {
 
 #[derive(Debug, Clone)]
 pub enum PointType {
-    Bool(Point<bool>),
+    Bool(Point<Bool>),
     Int(Point<i64>),
     Float(Point<f64>),
 }
@@ -22,6 +24,24 @@ impl PointType {
             PointType::Bool(point) => point.name.clone(),
             PointType::Int(point) => point.name.clone(),
             PointType::Float(point) => point.name.clone(),
+        }
+    }
+    pub fn pointBool(&self) -> Point<Bool> {
+        match self {
+            PointType::Bool(point) => point.clone(),
+            _ => panic!("Invalid point type Bool"),
+        }
+    }
+    pub fn pointInt(&self) -> Point<i64> {
+        match self {
+            PointType::Int(point) => point.clone(),
+            _ => panic!("Invalid point type Int"),
+        }
+    }
+    pub fn pointFloat(&self) -> Point<f64> {
+        match self {
+            PointType::Float(point) => point.clone(),
+            _ => panic!("Invalid point type Float"),
         }
     }
 }

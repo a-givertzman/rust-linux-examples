@@ -1,10 +1,11 @@
 use std::{collections::HashMap, rc::Rc, cell::RefCell};
 
-use crate::traits::nested_fn::{t_in_out::TInOut, bool::Bool};
+use crate::traits::nested_fn::{t_in_out::TInOut, bool::Bool, point::Point};
 
 
 ///
 /// A container for storing FnInput by name
+#[derive(Debug)]
 pub struct FnInputs {
     refs: HashMap<String, InputType>,
 }
@@ -23,17 +24,17 @@ impl FnInputs {
     }
     ///
     /// Adding new Bool input refeerence
-    pub fn addBool(&mut self, name: impl Into<String>, input: Rc<RefCell<Box<dyn TInOut<Bool, Bool>>>>) {
+    pub fn addBool(&mut self, name: impl Into<String>, input: Rc<RefCell<Box<dyn TInOut<Point<Bool>, Bool>>>>) {
         self.refs.insert(name.into(), InputType::Bool(input));
     }
     ///
     /// Adding new Int input refeerence
-    pub fn addInt(&mut self, name: impl Into<String>, input: Rc<RefCell<Box<dyn TInOut<i64, i64>>>>) {
+    pub fn addInt(&mut self, name: impl Into<String>, input: Rc<RefCell<Box<dyn TInOut<Point<i64>, i64>>>>) {
         self.refs.insert(name.into(), InputType::Int(input));
     }
     ///
     /// Adding new Float input refeerence
-    pub fn addFloat(&mut self, name: impl Into<String>, input: Rc<RefCell<Box<dyn TInOut<f64, f64>>>>) {
+    pub fn addFloat(&mut self, name: impl Into<String>, input: Rc<RefCell<Box<dyn TInOut<Point<f64>, f64>>>>) {
         self.refs.insert(name.into(), InputType::Float(input));
     }
     ///
@@ -43,7 +44,7 @@ impl FnInputs {
     }
     ///
     /// Returns input::Bool by it's name
-    pub fn getBool(&self, name: &str) -> Rc<RefCell<Box<dyn TInOut<Bool, Bool>>>> {
+    pub fn getBool(&self, name: &str) -> Rc<RefCell<Box<dyn TInOut<Point<Bool>, Bool>>>> {
         match self.refs.get(name.into()) {
             Some(input) => {
                 match input {
@@ -56,7 +57,7 @@ impl FnInputs {
     }
     ///
     /// Returns input::Int by it's name
-    pub fn getInt(&self, name: &str) -> Rc<RefCell<Box<dyn TInOut<i64, i64>>>> {
+    pub fn getInt(&self, name: &str) -> Rc<RefCell<Box<dyn TInOut<Point<i64>, i64>>>> {
         match self.refs.get(name.into()) {
             Some(input) => {
                 match input {
@@ -70,7 +71,7 @@ impl FnInputs {
     }
     ///
     /// Returns input::Float by it's name
-    pub fn getFloat(&self, name: &str) -> Rc<RefCell<Box<dyn TInOut<f64, f64>>>> {
+    pub fn getFloat(&self, name: &str) -> Rc<RefCell<Box<dyn TInOut<Point<f64>, f64>>>> {
         match self.refs.get(name.into()) {
             Some(input) => {
                 match input {
@@ -83,8 +84,9 @@ impl FnInputs {
     }
 }
 
+#[derive(Debug)]
 pub enum InputType {
-    Bool(Rc<RefCell<Box<dyn TInOut<Bool, Bool>>>>),
-    Int(Rc<RefCell<Box<dyn TInOut<i64, i64>>>>),
-    Float(Rc<RefCell<Box<dyn TInOut<f64, f64>>>>),
+    Bool(Rc<RefCell<Box<dyn TInOut<Point<Bool>, Bool>>>>),
+    Int(Rc<RefCell<Box<dyn TInOut<Point<i64>, i64>>>>),
+    Float(Rc<RefCell<Box<dyn TInOut<Point<f64>, f64>>>>),
 }
