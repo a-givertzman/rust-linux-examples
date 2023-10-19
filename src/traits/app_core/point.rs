@@ -12,6 +12,52 @@ pub struct Point<T> {
 }
 
 
+impl<T: std::ops::Add<Output = T> + Clone> std::ops::Add for Point<T> {
+    type Output = Point<T>;
+    fn add(self, rhs: Self) -> Self::Output {
+        let status = match self.status.cmp(&rhs.status) {
+            std::cmp::Ordering::Less => rhs.status,
+            std::cmp::Ordering::Equal => self.status,
+            std::cmp::Ordering::Greater => self.status,
+        };
+        let timestamp = match self.timestamp.cmp(&rhs.timestamp) {
+            std::cmp::Ordering::Less => rhs.timestamp,
+            std::cmp::Ordering::Equal => self.timestamp,
+            std::cmp::Ordering::Greater => self.timestamp,
+        };
+        Point {
+            name: String::from("Point.Add"),
+            value: self.value + rhs.value,
+            status: status,
+            timestamp: timestamp,
+        }
+    }
+}
+
+
+impl<T: std::ops::BitOr<Output = T>> std::ops::BitOr for Point<T> {
+    type Output = Point<T>;
+    fn bitor(self, rhs: Self) -> Self::Output {
+        let status = match self.status.cmp(&rhs.status) {
+            std::cmp::Ordering::Less => rhs.status,
+            std::cmp::Ordering::Equal => self.status,
+            std::cmp::Ordering::Greater => self.status,
+        };
+        let timestamp = match self.timestamp.cmp(&rhs.timestamp) {
+            std::cmp::Ordering::Less => rhs.timestamp,
+            std::cmp::Ordering::Equal => self.timestamp,
+            std::cmp::Ordering::Greater => self.timestamp,
+        };
+        Point {
+            name: String::from("Point.Add"),
+            value: self.value | rhs.value,
+            status: status,
+            timestamp: timestamp,
+        }        
+    }
+}
+
+
 #[derive(Debug, Clone)]
 pub enum PointType {
     Bool(Point<Bool>),
@@ -26,19 +72,19 @@ impl PointType {
             PointType::Float(point) => point.name.clone(),
         }
     }
-    pub fn pointBool(&self) -> Point<Bool> {
+    pub fn asBool(&self) -> Point<Bool> {
         match self {
             PointType::Bool(point) => point.clone(),
             _ => panic!("Invalid point type Bool"),
         }
     }
-    pub fn pointInt(&self) -> Point<i64> {
+    pub fn asInt(&self) -> Point<i64> {
         match self {
             PointType::Int(point) => point.clone(),
             _ => panic!("Invalid point type Int"),
         }
     }
-    pub fn pointFloat(&self) -> Point<f64> {
+    pub fn asFloat(&self) -> Point<f64> {
         match self {
             PointType::Float(point) => point.clone(),
             _ => panic!("Invalid point type Float"),

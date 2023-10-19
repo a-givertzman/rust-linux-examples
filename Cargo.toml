@@ -127,3 +127,7 @@ path = "src/traits/super_traits.rs"
 [[bin]]
 name = "mut_refs"
 path = "src/refs/mut_refs.rs"
+
+[[bin]]
+name = "nested_fn_enum"
+path = "src/test_nested_fn_enum/nested_fn_enum.rs"

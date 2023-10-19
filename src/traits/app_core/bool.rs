@@ -14,3 +14,11 @@ impl fmt::Display for Bool {
         write!(f, "{}", self.0)
     }
 }
+
+
+impl std::ops::BitOr for Bool {
+    type Output = Bool;
+    fn bitor(self, rhs: Self) -> Self::Output {
+        Bool(self.0 | rhs.0)
+    }
+}

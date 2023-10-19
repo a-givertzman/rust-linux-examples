@@ -1,4 +1,4 @@
-use super::point::Point;
+use crate::traits::app_core::point::Point;
 
 
 
