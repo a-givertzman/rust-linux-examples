@@ -49,7 +49,7 @@ impl<T: std::ops::BitOr<Output = T>> std::ops::BitOr for Point<T> {
             std::cmp::Ordering::Greater => self.timestamp,
         };
         Point {
-            name: String::from("Point.Add"),
+            name: String::from("Point.BitOr"),
             value: self.value | rhs.value,
             status: status,
             timestamp: timestamp,
@@ -58,6 +58,9 @@ impl<T: std::ops::BitOr<Output = T>> std::ops::BitOr for Point<T> {
 }
 
 
+///
+/// enum container for Point<T>
+/// - supported types: Bool, Int, Float
 #[derive(Debug, Clone)]
 pub enum PointType {
     Bool(Point<Bool>),
@@ -75,19 +78,19 @@ impl PointType {
     pub fn asBool(&self) -> Point<Bool> {
         match self {
             PointType::Bool(point) => point.clone(),
-            _ => panic!("Invalid point type Bool"),
+            _ => panic!("PointType.asBool | Invalid point type Bool"),
         }
     }
     pub fn asInt(&self) -> Point<i64> {
         match self {
             PointType::Int(point) => point.clone(),
-            _ => panic!("Invalid point type Int"),
+            _ => panic!("PointType.asInt | Invalid point type Int"),
         }
     }
     pub fn asFloat(&self) -> Point<f64> {
         match self {
             PointType::Float(point) => point.clone(),
-            _ => panic!("Invalid point type Float"),
+            _ => panic!("PointType.asFloat | Invalid point type Float"),
         }
     }
 }

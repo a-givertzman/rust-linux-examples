@@ -4,7 +4,7 @@
 use std::{rc::Rc, cell::RefCell};
 
 use chrono::DateTime;
-use log::debug;
+use log::{debug, trace};
 
 use crate::traits::app_core::point::PointType;
 
@@ -57,16 +57,15 @@ pub struct FnSum {
 /// 
 impl FnIn for FnSum {
     fn add(&mut self, _: PointType) {
-        // self.point = point;
-        // println!("FnInput({}).add | value: {:?}", self.id, &self.point);
+        panic!("FnSum.add | method is not used")
     }
 }
 impl FnOut for FnSum { 
     fn out(&self) -> PointType {
         let value1 = self.input1.borrow().out();
-        debug!("FnSum({}).out | value1: {:?}", self.id, &value1);
+        trace!("FnSum({}).out | value1: {:?}", self.id, &value1);
         let value2 = self.input2.borrow().out();
-        debug!("FnSum({}).out | value2: {:?}", self.id, &value2);
+        trace!("FnSum({}).out | value2: {:?}", self.id, &value2);
         let out = match value1 {
             PointType::Bool(value1) => {
                 PointType::Bool(value1 | value2.asBool())
@@ -78,7 +77,7 @@ impl FnOut for FnSum {
                 PointType::Float(value1 + value2.asFloat())
             },
         };
-        debug!("FnSum({}).out | out: {:?}", self.id, &out);
+        trace!("FnSum({}).out | out: {:?}", self.id, &out);
         out
     }
 }

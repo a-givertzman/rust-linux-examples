@@ -1,11 +1,7 @@
 use std::{collections::HashMap, rc::Rc, cell::RefCell};
 
-use crate::traits::{
-    app_core::{point::{Point, PointType}, bool::Bool},
-    nested_fn_enum::t_in_out::FnOut,
-};
 
-use super::t_in_out::{FnIn, FnInOut};
+use super::t_in_out::FnInOut;
 
 
 ///
