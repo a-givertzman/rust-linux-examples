@@ -13,6 +13,7 @@ use super::nested_fn::NestedFn;
 
 #[derive(Debug)]
 pub struct FnMetric {
+    id: String,
     pub input: Rc<RefCell<Box<dyn FnInOut>>>,
 }
 
@@ -36,6 +37,7 @@ impl FnMetric {
         };
         let func = NestedFn::new(conf, initial, inputs);
         FnMetric {
+            id: conf.id.clone(),
             input: func,
         }
     }
@@ -44,13 +46,13 @@ impl FnMetric {
         let pointType = self.input.borrow().out();
         match pointType {
             crate::traits::app_core::point::PointType::Bool(point) => {
-                format!("insert into table values ({})", point.value)
+                format!("insert into table values(id, value, timestamp) ({},{},{})", self.id, point.value, point.timestamp)
             },
             crate::traits::app_core::point::PointType::Int(point) => {
-                format!("insert into table values ({})", point.value)
+                format!("insert into table values(id, value, timestamp) ({},{},{})", self.id, point.value, point.timestamp)
             },
             crate::traits::app_core::point::PointType::Float(point) => {
-                format!("insert into table values ({})", point.value)
+                format!("insert into table values(id, value, timestamp) ({},{},{})", self.id, point.value, point.timestamp)
             },
         }
     }

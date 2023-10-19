@@ -3,7 +3,6 @@
 
 use std::{rc::Rc, cell::RefCell};
 
-use chrono::DateTime;
 use log::{debug, trace};
 
 use crate::traits::app_core::point::PointType;
@@ -25,14 +24,14 @@ pub struct FnInput {
 impl FnIn for FnInput {
     fn add(&mut self, point: PointType) {
         self.point = point;
-        println!("FnInput({}).add | value: {:?}", self.id, &self.point);
+        trace!("FnInput({}).add | value: {:?}", self.id, &self.point);
     }
 }
 ///
 /// 
 impl FnOut for FnInput {
     fn out(&self) -> PointType {
-        println!("FnInput({}).out | value: {:?}", self.id, &self.point);
+        trace!("FnInput({}).out | value: {:?}", self.id, &self.point);
         self.point.clone()
     }
 }

@@ -10,6 +10,7 @@ pub enum Initial {
 }
 
 pub struct Conf {
+    pub id: String,
     pub name: String,
     pub initial: Initial,
     pub nested: HashMap<String, Conf>,

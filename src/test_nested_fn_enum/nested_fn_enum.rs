@@ -3,8 +3,8 @@
 use std::collections::HashMap;
 
 use debug_session::debug_session::{DebugSession, LogLevel};
-use log::{debug, warn};
-use traits::{nested_fn_enum::{fn_inputs::FnInputs, t_in_out::FnIn, fn_metric::FnMetric}, app_core::point::PointType};
+use log::trace;
+use traits::{nested_fn_enum::{fn_inputs::FnInputs, fn_metric::FnMetric}, app_core::point::PointType};
 
 use crate::traits::{app_core::{point::Point, bool::Bool}, nested_fn_enum::conf::{Initial, Conf}};
 
@@ -30,18 +30,21 @@ fn points() -> Vec<PointType> {
 }
 
 fn main() {
-    DebugSession::init(LogLevel::Trace);
+    DebugSession::init(LogLevel::Debug);
     
     let mut conf = Conf {
+        id: String::from("metric_name"),
         name: String::from("sum"),
         initial: Initial::Float(0.0),
         nested: HashMap::from([
             (String::from("input1"), Conf {
+                id: String::new(),
                 name: String::from("input"),
                 initial: Initial::Float(0.0),
                 nested: HashMap::new()
             }),
             (String::from("input2"), Conf {
+                id: String::new(),
                 name: String::from("input"),
                 initial: Initial::Float(0.0),
                 nested: HashMap::new()
@@ -52,9 +55,10 @@ fn main() {
     let mut metricInputs = FnInputs::new();
     let metric = FnMetric::new(&mut conf, &mut metricInputs);
     println!("INPUTS: {:?}", &metricInputs);
+    println!("\n");
     for point in points() {
         let pointName = point.name();
-        debug!("received point: {:?}", point);
+        trace!("received point: {:?}", point);
         match metricInputs.get(&pointName) {
             Some(input) => {
                 println!("input point: {:?}", &point);
@@ -62,7 +66,7 @@ fn main() {
                 let out = metric.out();
                 println!("metric out: {:?}", out);
             },
-            None => warn!("input {:?} - not found", pointName),
+            None => trace!("input {:?} - not found", pointName),
         };
     }
 }
