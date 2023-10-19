@@ -4,7 +4,7 @@ use rand::Rng;
 
 use log::{debug, warn, info};
 
-use crate::traits::nested_fn::{point::{Point, PointType}, bool::Bool};
+use crate::traits::app_core::{bool::Bool, point::{Point, PointType}};
 
 
 

@@ -4,11 +4,14 @@ use std::{fmt::{Display, Debug}, cell::RefCell, rc::Rc};
 
 use chrono::DateTime;
 
-use crate::traits::nested_fn::{t_in_out::{TInOut, TInput, TOutput}, point::Point};
+use crate::traits::{
+    app_core::{point::Point, bool::Bool},
+    nested_fn_generic::t_in_out::{TInOut, TInput, TOutput},
+};
 
 
 pub enum FnType {
-    Bool(FnInput<bool>),
+    Bool(FnInput<Bool>),
     Int(FnInput<i64>),
     Float(FnInput<f64>),
 }

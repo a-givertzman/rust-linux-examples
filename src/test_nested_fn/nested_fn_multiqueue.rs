@@ -13,7 +13,10 @@ use log::{warn, info};
 
 use crate::{
     debug_session::debug_session::{DebugSession, LogLevel},
-    traits::nested_fn::{functions::{FnInput, FnType}, producer::ProducerQueue, point::PointType, t_in_out::TInOut}, 
+    traits::{
+        app_core::{point::PointType, bool::Bool},
+        nested_fn_generic::{functions::{FnInput, FnType}, producer::ProducerQueue, t_in_out::TInOut},
+    }, 
 };
 
 
@@ -37,7 +40,7 @@ fn main() {
     let mut inputs: HashMap<String, FnType> = HashMap::from([
         (String::from("float1"), FnType::Float( FnInput { id: String::from("float1"), value: 0.0, status: 0, timestamp: chrono::offset::Utc::now() } )), 
         (String::from("int1"), FnType::Int( FnInput { id: String::from("float1"), value: 0, status: 0, timestamp: chrono::offset::Utc::now() } )), 
-        (String::from("bool1"), FnType::Bool( FnInput { id: String::from("float1"), value: false, status: 0, timestamp: chrono::offset::Utc::now() } )), 
+        (String::from("bool1"), FnType::Bool( FnInput { id: String::from("float1"), value: Bool(false), status: 0, timestamp: chrono::offset::Utc::now() } )), 
     ]);
     info!("Receiving...: {}", ITERATIONS);
     let mut received = 0;

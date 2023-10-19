@@ -1,6 +1,9 @@
 use std::{collections::HashMap, rc::Rc, cell::RefCell};
 
-use crate::traits::nested_fn::{t_in_out::TInOut, bool::Bool, point::Point};
+use crate::traits::{
+    app_core::{point::Point, bool::Bool},
+    nested_fn_generic::t_in_out::TInOut,
+};
 
 
 ///
