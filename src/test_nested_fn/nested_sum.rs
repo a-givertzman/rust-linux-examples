@@ -7,15 +7,19 @@ mod traits;
 
 use std::{collections::HashMap, cell::RefCell, borrow::BorrowMut, fmt::Debug, rc::Rc};
 use log::{warn, debug};
-use traits::nested_fn::{t_in_out::TInOut, functions::{FnInput, FnSum}};
 
 use crate::{
     debug_session::debug_session::{DebugSession, LogLevel}, 
-    traits::nested_fn::{
-        t_in_out::TOutput, 
-        point::{Point, PointType},
-        functions::FnMetric, fn_inputs::{FnInputs, InputType}, bool::Bool,
-    },
+    traits::{
+        app_core::{
+            point::{Point, PointType},
+            bool::Bool,
+        },
+        nested_fn_generic::{
+            t_in_out::{TInOut, TOutput}, 
+            functions::{FnMetric, FnInput, FnSum}, fn_inputs::{FnInputs, InputType}
+        },
+    }
 };
 
 
@@ -106,11 +110,13 @@ fn function<T>(conf: &mut Conf, initial: T, inputName: String, inputs: &mut FnIn
                     inputs.addInt(inputName, input.clone());
                     input
                 },
-                Initial::Float(_initial) => {
+                Initial::Float(initial) => {
+                    let mut input = fnInput(inputName.clone(), initial);
                     inputs.addFloat(inputName, input.clone());
+                    input
                 },
                 Initial::None => todo!(),
-            }
+            };
             input
         },
         "sum" => {
