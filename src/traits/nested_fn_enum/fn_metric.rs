@@ -45,13 +45,13 @@ impl FnMetric {
     pub fn out(&self) -> String {
         let pointType = self.input.borrow().out();
         match pointType {
-            crate::traits::app_core::point::PointType::Bool(point) => {
+            PointType::Bool(point) => {
                 format!("insert into table values(id, value, timestamp) ({},{},{})", self.id, point.value, point.timestamp)
             },
-            crate::traits::app_core::point::PointType::Int(point) => {
+            PointType::Int(point) => {
                 format!("insert into table values(id, value, timestamp) ({},{},{})", self.id, point.value, point.timestamp)
             },
-            crate::traits::app_core::point::PointType::Float(point) => {
+            PointType::Float(point) => {
                 format!("insert into table values(id, value, timestamp) ({},{},{})", self.id, point.value, point.timestamp)
             },
         }

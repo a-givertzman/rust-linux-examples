@@ -131,3 +131,7 @@ path = "src/refs/mut_refs.rs"
 [[bin]]
 name = "nested_fn_enum"
 path = "src/test_nested_fn_enum/nested_fn_enum.rs"
+
+[[bin]]
+name = "overlapping_traits"
+path = "src/traits/overlapping_traits.rs"
