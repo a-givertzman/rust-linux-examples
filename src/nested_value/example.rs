@@ -168,7 +168,7 @@ fn main() {
     println!("multi value '{}': {:?}", key, flags.get(key));
     println!();
 
-    let value = MultiValue::new([
+    let mut value = MultiValue::new([
         ("u64", Box::new(ConstValue::new(Value::U64(1234567890)))),
         ("i64", Box::new(ConstValue::new(Value::I64(-1234567890)))),
         ("f64", Box::new(ConstValue::new(Value::F64(12345.6789012345)))),
@@ -265,4 +265,8 @@ fn main() {
         println!("multi value '{}': {:#?}", key, value.get(key));
         println!();
     }
+    let key = "v1/v2/f64";
+    println!("multi value '{}': {:#?}", key, value.get(key));
+    value.store(key, Value::F64(222.222222 + 222.222));
+    println!("multi value '{}': {:#?}", key, value.get(key));
 }
