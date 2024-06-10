@@ -257,5 +257,4 @@ fn main() {
         println!("multi value '{}': {:#?}", key, value.get(key));
         println!();
     }
-    t();
 }
