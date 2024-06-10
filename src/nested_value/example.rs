@@ -1,6 +1,108 @@
+//!
+//! #### Demo version of the nested value structure
+//! 
+//! - ConstValue - contains simple constant value (bool / i64 / u64 / f64, String, Vec<Value>, Map<Value, Value>)
+//! - MultiValue - contains map of nested values
+//! - FetchValue - contains cached data fetched using ApiRequest
+//! 
+//! **For example constants:**
+//! 
+//! ```
+//! let value = MultiValue::new([
+//!     ("bool", Box::new(ConstValue::new(Value::Bool(true)))),
+//!     ("u64", Box::new(ConstValue::new(Value::U64(1234567890)))),
+//!     ("f64", Box::new(ConstValue::new(Value::F64(12345.6789012345)))),
+//! ]);
+//! ```
+//! 
+//! **Example with sollections:**
+//! 
+//! ```
+//! let value = MultiValue::new([
+//!     ("collections", Box::new(MultiValue::new([
+//!         ("vec", Box::new(ConstValue::new(Value::Vec(vec![
+//!             Value::U64(222),
+//!             Value::I64(-222),
+//!             Value::F64(222.222222),
+//!         ])))),
+//!         ("map", Box::new(ConstValue::new(Value::Map(IndexMap::from([
+//!             (Value::from("222"), Value::U64(222)),
+//!             (Value::from("-222"), Value::I64(-222)),
+//!             (Value::from("222.222"), Value::F64(222.222222)),
+//!         ]))))),
+//!         ("fetch-222", Box::new(FetchValue::new(
+//!             ApiRequest::new(&u32::to_be_bytes(222)),
+//!             Box::new(|input| {
+//!                 match input.try_into() {
+//!                     Ok(bytes) => Ok(Value::U64(u32::from_be_bytes(bytes) as u64)),
+//!                     Err(_) => Err(format!("fetch-222 | invalid input: {:?}", input)),
+//!                 }
+//!             }),
+//!         ))),
+//!         ("fetch-222.222", Box::new(FetchValue::new(
+//!             ApiRequest::new(&f64::to_be_bytes(222.222)),
+//!             Box::new(|input| {
+//!                 match input.try_into() {
+//!                     Ok(bytes) => Ok(Value::F64(f64::from_be_bytes(bytes))),
+//!                     Err(_) => Err(format!("fetch-222.222 | invalid input: {:?}", input)),
+//!                 }
+//!             }),
+//!         ))),
+//!     ]))),
+//! ]);
+//! ```
+//! 
+//! **Example with fetched values:**
+//! 
+//! ```
+//! let value = MultiValue::new([
+//!     ("fetched", Box::new(MultiValue::new([
+//!         ("fetch-vec", Box::new(FetchValue::new(
+//!             ApiRequest::new(
+//!                 serde_json::to_string(&vec![123, 456, 789])
+//!                     .unwrap_or_else(|err| panic!("fetch-vec | to json error: {:#?}", err)).as_bytes(),
+//!             ),
+//!             Box::new(|reply| {
+//!                 match serde_json::from_slice(reply) {
+//!                     Ok(reply) => {
+//!                         let reply: Vec<u64> = reply;
+//!                         // Ok(reply)
+//!                         Ok(Value::Vec(reply.into_iter().map(|v| Value::U64(v)).collect()))
+//!                     }
+//!                     Err(err) => Err(format!("fetch-vec | from json error: {:#?}", err)),
+//!                 }
+//!             }),
+//!         ))),
+//!         ("fetch-map", Box::new(FetchValue::new(
+//!             ApiRequest::new(
+//!                 r#"{
+//!                     "key1": 111.111,
+//!                     "key2": 222.222,
+//!                     "key3": 333.333
+//!                 }"#.as_bytes(),
+//!             ),
+//!             Box::new(|reply| {
+//!                 match serde_json::from_slice(reply) {
+//!                     Ok(reply) => {
+//!                         let reply: IndexMap<&str, f64> = reply;
+//!                         // Ok(reply)
+//!                         Ok(Value::Map(reply.into_iter().map(|(key, value)| (Value::from(key), Value::from(value))).collect()))
+//!                     }
+//!                     Err(err) => Err(format!("fetch-vec | from json error: {:#?}", err)),
+//!                 }
+//!             }),
+//!         ))),
+//!     ]))),
+//! ]);
+//! ```
+//! 
+//! **Try example using command:**
+//! 
+//! ```
+//!     cargo run --bin nested_value --release -- --nocapture
+//! ```
 #[path = "../debug_session/mod.rs"]
 mod debug_session;
-
 mod const_value;
 mod nested_value;
 mod multi_value;
@@ -11,12 +113,12 @@ use fetch_value::{ApiRequest, FetchValue};
 use indexmap::IndexMap;
 use multi_value::MultiValue;
 use value::Value;
-
 use crate::{
     const_value::ConstValue,
     nested_value::NestedValue,
 };
-
+//
+//
 fn main() {
     DebugSession::init(LogLevel::Debug);
 
@@ -155,5 +257,5 @@ fn main() {
         println!("multi value '{}': {:#?}", key, value.get(key));
         println!();
     }
+    t();
 }
-
