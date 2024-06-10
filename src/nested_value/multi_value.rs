@@ -31,15 +31,37 @@ impl<T> MultiValue<T> {
 impl<T> NestedValue<T> for MultiValue<T> {
     //
     //
+    fn id(&self) -> String {
+        self.id.clone()
+    }
+    //
+    //
     fn get(&self, key: &str) -> T {
         let mut keys = key.split('/');
-        match self.values.get(keys.next().unwrap()) {
-            Some(value) => {
-                let keys: String = keys.map(|v| format!("{}/", v)).collect();
-                // println!("{}.get | keys: {}", self.id, keys);
-                value.get(&keys)
+        let key = keys.next().unwrap();
+        // println!("{}.get | -> key: {}", self.id, key);
+        match self.values.get(key) {
+            Some(node) => {
+                let key: String = keys.map(|v| format!("{}/", v)).collect();
+                // println!("{}.get | key -> : {}", self.id, key);
+                node.get(&key)
             }
             None => panic!("{}.get | Not found key '{}'", self.id, key),
+        }
+    }
+    //
+    //
+    fn store(&mut self, key: &str, value: T) {
+        let mut keys = key.split('/');
+        let key = keys.next().unwrap();
+        // println!("{}.store | -> key: {}", self.id, key);
+        match self.values.get_mut(key) {
+            Some(node) => {
+                let key: String = keys.map(|v| format!("{}/", v)).collect();
+                // println!("{}.store | key -> : {}", self.id, key);
+                node.store(&key, value)
+            }
+            None => panic!("{}.store | Not found key '{}'", self.id, key),
         }
     }
 }

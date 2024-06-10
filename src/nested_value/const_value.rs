@@ -30,8 +30,18 @@ impl<T> ConstValue<T> {
 impl<T: Clone> NestedValue<T> for ConstValue<T> {
     //
     //
+    fn id(&self) -> String {
+        self.id.clone()
+    }
+    //
+    //
     fn get(&self, _: &str) -> T {
         self.value.clone()
+    }
+    //
+    //
+    fn store(&mut self, _: &str, value: T) {
+        self.value = value
     }
 }
 //

@@ -38,6 +38,11 @@ impl<R> FetchValue<R> {
 impl<R: Clone> NestedValue<R> for FetchValue<R> {
     //
     //
+    fn id(&self) -> String {
+        self.id.clone()
+    }
+    //
+    //
     fn get(&self, _: &str) -> R {
         if self.value.borrow().is_none() {
             match self.request.fetch() {

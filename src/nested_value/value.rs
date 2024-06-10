@@ -1,5 +1,4 @@
 use std::{fmt::Debug, hash::Hash};
-
 use indexmap::IndexMap;
 ///
 /// Container storing several basic types, array and map

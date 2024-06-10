@@ -122,6 +122,10 @@ use crate::{
 fn main() {
     DebugSession::init(LogLevel::Debug);
 
+    let value = ConstValue::new(Value::Null);
+    println!("const value: {:#?}", value);
+    println!("const value: {:?}", value.get(""));
+    println!();
     let value = ConstValue::new(12345.6789012345);
     println!("const value: {:#?}", value);
     println!("const value: {:?}", value.get(""));
@@ -131,7 +135,7 @@ fn main() {
     println!("const value: {:?}", value.get(""));
     println!();
 
-    let flags = MultiValue::new([
+    let mut flags = MultiValue::new([
         ("bool-flags", Box::new(MultiValue::new([
             ("flag-true", Box::new(ConstValue::new(true))),
             ("flag-false", Box::new(ConstValue::new(false))),
@@ -141,9 +145,13 @@ fn main() {
     println!("multi value {}: {:?}", key, flags.get(key));
     let key = "bool-flags/flag-false";
     println!("multi value {}: {:?}", key, flags.get(key));
+    println!("multi value {}: {:?}", key, flags.get(key));
+    let key = "bool-flags/flag-false";
+    flags.store(key, true);
+    println!("multi value {}: {:?}", key, flags.get(key));
     println!();
 
-    let flags = MultiValue::new([
+    let mut flags = MultiValue::new([
         ("int-flags", Box::new(MultiValue::new([
             ("flag-1", Box::new(ConstValue::new(1))),
             ("flag-5", Box::new(ConstValue::new(5))),
@@ -155,6 +163,8 @@ fn main() {
     let key = "int-flags/flag-5";
     println!("multi value '{}': {:?}", key, flags.get(key));
     let key = "int-flags/flag-876";
+    println!("multi value '{}': {:?}", key, flags.get(key));
+    flags.store(key, 888);
     println!("multi value '{}': {:?}", key, flags.get(key));
     println!();
 
@@ -199,7 +209,6 @@ fn main() {
                 ))),
 
             ]))),
-
             ("fetch-vec", Box::new(FetchValue::new(
                 ApiRequest::new(
                     serde_json::to_string(&vec![123, 456, 789])
@@ -216,7 +225,6 @@ fn main() {
                     }
                 }),
             ))),
-
             ("fetch-map", Box::new(FetchValue::new(
                 ApiRequest::new(
                     r#"{
