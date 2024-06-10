@@ -3,6 +3,7 @@
 use std::{fmt::{Display, Debug}, cell::RefCell, rc::Rc};
 
 use chrono::DateTime;
+use log::trace;
 
 use crate::traits::{
     app_core::{point::Point, bool::Bool},
@@ -47,10 +48,10 @@ impl<I> TInOut<Point<I>, I> for FnInput<I> where
         self.value = point.value;
         self.status = point.status;
         self.timestamp = point.timestamp;
-        println!("FnInput({})<{}>.add | value: {:?}", self.id, std::any::type_name::<I>(), &self.value);
+        trace!("FnInput({})<{}>.add | value: {:?}", self.id, std::any::type_name::<I>(), &self.value);
     }
     fn out(&self) -> I {
-        println!("FnInput({})<{}>.out | value: {:?}", self.id, std::any::type_name::<I>(), &self.value);
+        trace!("FnInput({})<{}>.out | value: {:?}", self.id, std::any::type_name::<I>(), &self.value);
         self.value.clone()
     }    
 }
@@ -61,13 +62,13 @@ impl<T: std::fmt::Debug> TInput<T> for FnInput<T> {
         self.value = point.value;
         self.status = point.status;
         self.timestamp = point.timestamp;
-        println!("FnInput({})<{}>.add | value: {:?}", self.id, std::any::type_name::<T>(), &self.value);
+        trace!("FnInput({})<{}>.add | value: {:?}", self.id, std::any::type_name::<T>(), &self.value);
     }
 }
 
 impl<T: Debug + Clone> TOutput<T> for FnInput<T> {
     fn out(&self) -> T {
-        println!("FnInput({})<{}>.out | value: {:?}", self.id, std::any::type_name::<T>(), &self.value);
+        trace!("FnInput({})<{}>.out | value: {:?}", self.id, std::any::type_name::<T>(), &self.value);
         self.value.clone()
     }
 }
@@ -75,7 +76,7 @@ impl<T: Debug + Clone> TOutput<T> for FnInput<T> {
 impl<I: std::ops::Add<Output = I>> TInOut<Point<I>, I> for FnSum<I> where 
     I: std::fmt::Debug + Clone {
     fn add(&mut self, value: Point<I>) {
-        println!("FnSum({})<{}>.add | value: --", self.id, std::any::type_name::<I>());
+        trace!("FnSum({})<{}>.add | value: --", self.id, std::any::type_name::<I>());
     }
     fn out(&self) -> I {
         let value1 = self.input1.borrow().out();
@@ -87,7 +88,7 @@ impl<I: std::ops::Add<Output = I>> TInOut<Point<I>, I> for FnSum<I> where
 
 impl<T: std::fmt::Debug> TInput<T> for FnSum<T> {
     fn add(&mut self, value: Point<T>) {
-        println!("FnSum({})<{}>.add | value: --", self.id, std::any::type_name::<T>());
+        trace!("FnSum({})<{}>.add | value: --", self.id, std::any::type_name::<T>());
     }
 }
     

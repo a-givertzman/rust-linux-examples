@@ -1,5 +1,3 @@
-#![allow(non_snake_case)]
-
 #[path = "../debug_session/mod.rs"]
 mod debug_session;
 #[path = "../traits/mod.rs"]
@@ -23,7 +21,7 @@ const ITERATIONS: usize = 100_000_000;
 
 
 fn main() {
-    DebugSession::init(LogLevel::Trace);
+    DebugSession::init(LogLevel::Debug);
 
     let (send, recv): (Sender<PointType>, Receiver<PointType>) = mpsc::channel();
     let mut p1 = ProducerChannel::new(ITERATIONS, send.clone());
@@ -99,5 +97,6 @@ fn main() {
         };
     }
     println!("elapsed: {:?}", time.elapsed());
+    println!("elapsed per item: {:?}", time.elapsed().div_f32(ITERATIONS as f32));
     info!("Received points: {}", received);
 }

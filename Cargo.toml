@@ -8,21 +8,38 @@ edition = "2021"
 [dependencies]
 defmt-rtt = "0.4.0"
 log = "0.4"
-env_logger = "0.10"
+env_logger = "0.11"
 chrono = "0.4"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
-heapless = "0.7"
+heapless = "0.8"
 
-event-listener = "^3.0"
+event-listener = "^5.2"
 
 circular-queue = "^0.2"
 
 multiqueue = "^0.3"
 
+tokio-stream = "^0.1"
+tokio = { version = "^1.21", features = ["full"] }
+proc-macro2 = "^1.0"
+tokio-macros = "~2.2.0"
+
 rand = "^0.8"
 
 csv = "^1.3"
+
+regex = "^1.10"
+
+indexmap = "^2.2"
+
+api-tools = { git = "https://github.com/a-givertzman/rust-api-tools.git", tag = "0.0.6" }
+
+
+[[bin]]
+name = "main"
+path = "src/main.rs"
+
 
 [[bin]]
 name = "async_event"
@@ -73,12 +90,16 @@ name = "add_phantom"
 path = "src/traits/phantom_type/add_phantom.rs"
 
 [[bin]]
-name = "nested_fn_channel"
-path = "src/test_nested_fn/nested_fn_channel.rs"
+name = "mpsc_channel"
+path = "src/stream_speed/mpsc_channel.rs"
 
 [[bin]]
-name = "nested_fn_multiqueue"
-path = "src/test_nested_fn/nested_fn_multiqueue.rs"
+name = "multiqueue"
+path = "src/stream_speed/multiqueue.rs"
+
+[[bin]]
+name = "tokio_channel"
+path = "src/stream_speed/tokio_channel.rs"
 
 [[bin]]
 name = "return_dyn_trait"
@@ -135,3 +156,7 @@ path = "src/test_nested_fn_enum/nested_fn_enum.rs"
 [[bin]]
 name = "overlapping_traits"
 path = "src/traits/overlapping_traits.rs"
+
+[[bin]]
+name = "nested_value"
+path = "src/nested_value/example.rs"

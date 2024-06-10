@@ -118,3 +118,50 @@ impl ProducerQueue {
         }).unwrap();    
     }
 }
+
+
+
+pub struct ProducerTokioChannel {
+    iterations: usize, 
+    send: Vec<tokio::sync::broadcast::Sender<PointType>>,
+}
+impl ProducerTokioChannel {
+    pub fn new(iterations: usize, send: tokio::sync::broadcast::Sender<PointType>) -> Self {
+        Self {
+            iterations,
+            send: vec![send],
+        }
+    }
+    ///
+    /// 
+    pub fn run(&mut self) {
+        let iterations = self.iterations;
+        let send = self.send.pop().unwrap();
+        let h = tokio::spawn(async move {
+            let name = "prodicer";
+            debug!("Task({}).run | calculating step...", name);
+            let points = points();
+            let mut random = rand::thread_rng();
+            let max = points.len();
+            let mut sent = 0;
+            for _ in 0..iterations {
+                let index = random.gen_range(0..max);
+                let point = &points[index];
+                match send.send(point.clone()) {
+                    Ok(_) => {
+                        sent += 1;
+                    },
+                    Err(err) => {
+                        warn!("Error write to queue: {:?}", err);
+                    },
+                }
+                // thread::sleep(Duration::from_micros(10));
+            }
+            info!("Sent points: {}", sent);
+            // thread::sleep(Duration::from_secs_f32(0.1));
+            // debug!("Task({}).run | calculating step - done ({:?})", name, cycle.elapsed());
+        });
+        // let h = thread::Builder::new().name("name".to_owned()).spawn(move || {
+        // }).unwrap();    
+    }
+}

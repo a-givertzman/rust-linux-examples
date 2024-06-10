@@ -1,8 +1,6 @@
-#![allow(non_snake_case)]
+use std::{thread, time::Duration, sync::{Arc, atomic::{Ordering, AtomicI16}}};
 
-use std::{thread, fmt::Debug, time::Duration, sync::{Arc, Mutex, atomic::{AtomicBool, Ordering, AtomicI16}}, cell::RefCell, rc::Rc};
-
-use event_listener::Event;
+use event_listener::{Event, Listener};
 
 
 fn main() {
@@ -35,7 +33,7 @@ fn main() {
         }
 
         // Start listening for events.
-        let mut listener = event.listen();
+        let listener = event.listen();
 
         // Check the flag again after creating the listener.
         if flag.load(Ordering::SeqCst) < 0 {
@@ -43,7 +41,7 @@ fn main() {
         }
 
         // Wait for a notification and continue the loop.
-        listener.as_mut().wait();
+        listener.wait();
         println!("flag value: {:?}", flag.load(Ordering::SeqCst))
     }
 }

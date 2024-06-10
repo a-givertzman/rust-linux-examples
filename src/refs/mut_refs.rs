@@ -7,9 +7,15 @@ mod traits;
 
 use std::{cell::RefCell, rc::Rc, fmt::Debug, collections::HashMap};
 
-use traits::nested_fn::{t_in_out::TInOut, point::{Point, PointType}};
+use traits::{
+    nested_fn_generic::t_in_out::TInOut,
+    app_core::{
+        point::{Point, PointType},
+        bool::Bool,
+    }
+};
 
-use crate::traits::nested_fn::{fn_inputs::{FnInputs, InputType}, bool::Bool};
+use crate::traits::nested_fn_generic::fn_inputs::{FnInputs, InputType};
 
 
 
@@ -66,7 +72,7 @@ fn main() {
         println!("ref1: {:?}", ref1);
         let ref2 = ref1.clone();
         let mut r = ref2.borrow_mut();
-        r.add(points()[2].pointInt());
+        r.add(points()[2].asInt());
         println!("ref2: {:?}", &ref2);
     }
     println!("\n");
@@ -76,9 +82,9 @@ fn main() {
 
     for (_, input) in refs {
         match input {
-            InputType::Bool(input) => input.borrow_mut().add(points()[0].pointBool()),
-            InputType::Int(input) => input.borrow_mut().add(points()[3].pointInt()),
-            InputType::Float(input) => input.borrow_mut().add(points()[6].pointFloat()),
+            InputType::Bool(input) => input.borrow_mut().add(points()[0].asBool()),
+            InputType::Int(input) => input.borrow_mut().add(points()[3].asInt()),
+            InputType::Float(input) => input.borrow_mut().add(points()[6].asFloat()),
         };
     }
 
@@ -88,9 +94,9 @@ fn main() {
     println!("ref1: {:?}", ref1);
     println!("ref2: {:?}", ref2);
 
-    inputs.getBool("ref0").borrow_mut().add(points()[1].pointBool());
-    inputs.getInt("ref1").borrow_mut().add(points()[4].pointInt());
-    inputs.getFloat("ref2").borrow_mut().add(points()[7].pointFloat());
+    inputs.getBool("ref0").borrow_mut().add(points()[1].asBool());
+    inputs.getInt("ref1").borrow_mut().add(points()[4].asInt());
+    inputs.getFloat("ref2").borrow_mut().add(points()[7].asFloat());
 
     println!("\n");
     println!("Chanjed in the FnInputs");

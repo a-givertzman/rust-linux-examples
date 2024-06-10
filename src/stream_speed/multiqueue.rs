@@ -1,5 +1,3 @@
-#![allow(non_snake_case)]
-
 #[path = "../debug_session/mod.rs"]
 mod debug_session;
 #[path = "../traits/mod.rs"]
@@ -104,5 +102,6 @@ fn main() {
         };
     }
     println!("elapsed: {:?}", time.elapsed());
+    println!("elapsed per item: {:?}", time.elapsed().div_f32(ITERATIONS as f32));
     info!("Received points: {}", received);
 }
