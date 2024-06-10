@@ -2,6 +2,7 @@
 //! #### Demo version of the nested value structure
 //! 
 //! - ConstValue - contains simple constant value (bool / i64 / u64 / f64, String, Vec<Value>, Map<Value, Value>)
+//! - MutValue - contains simple mutable value (bool / i64 / u64 / f64, String, Vec<Value>, Map<Value, Value>)
 //! - MultiValue - contains map of nested values
 //! - FetchValue - contains cached data fetched using ApiRequest
 //! 
@@ -107,11 +108,13 @@ mod const_value;
 mod nested_value;
 mod multi_value;
 mod fetch_value;
+mod mut_value;
 mod value;
 use debug_session::debug_session::{DebugSession, LogLevel};
 use fetch_value::{ApiRequest, FetchValue};
 use indexmap::IndexMap;
 use multi_value::MultiValue;
+use mut_value::MutValue;
 use value::Value;
 use crate::{
     const_value::ConstValue,
@@ -138,7 +141,7 @@ fn main() {
     let mut flags = MultiValue::new([
         ("bool-flags", Box::new(MultiValue::new([
             ("flag-true", Box::new(ConstValue::new(true))),
-            ("flag-false", Box::new(ConstValue::new(false))),
+            ("flag-false", Box::new(MutValue::new(false))),
         ]))),
     ]);
     let key = "bool-flags/flag-true";
@@ -155,7 +158,7 @@ fn main() {
         ("int-flags", Box::new(MultiValue::new([
             ("flag-1", Box::new(ConstValue::new(1))),
             ("flag-5", Box::new(ConstValue::new(5))),
-            ("flag-876", Box::new(ConstValue::new(876))),
+            ("flag-876", Box::new(MutValue::new(876))),
         ]))),
     ]);
     let key = "int-flags/flag-1";
@@ -179,7 +182,7 @@ fn main() {
             ("v2", Box::new(MultiValue::new([
                 ("u64", Box::new(ConstValue::new(Value::U64(222)))),
                 ("i64", Box::new(ConstValue::new(Value::I64(-222)))),
-                ("f64", Box::new(ConstValue::new(Value::F64(222.222222)))),
+                ("f64", Box::new(MutValue::new(Value::F64(222.222222)))),
 
                 ("vec", Box::new(ConstValue::new(Value::Vec(vec![Value::U64(222), Value::I64(-222), Value::F64(222.222222)])))),
 

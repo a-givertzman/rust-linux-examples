@@ -2,16 +2,16 @@ use std::fmt::Debug;
 use regex::Regex;
 use crate::nested_value::NestedValue;
 ///
-/// Contains the constant value, returns on call get() method
-pub struct ConstValue<T> {
+/// Contains the mutable value, returns on call get() method
+pub struct MutValue<T> {
     id: String,
     value: T,
 }
 //
 //
-impl<T> ConstValue<T> {
+impl<T> MutValue<T> {
     ///
-    /// Returns new instance of the [ConstValue]
+    /// Returns new instance of the [MutValue]
     pub fn new(value: T) -> Self {
         let re = Regex::new(r"^(?:.*::)?(.+)$").unwrap();
         let raw_type_name = std::any::type_name::<Self>();
@@ -27,7 +27,7 @@ impl<T> ConstValue<T> {
 }
 //
 //
-impl<T: Clone> NestedValue<T> for ConstValue<T> {
+impl<T: Clone> NestedValue<T> for MutValue<T> {
     //
     //
     fn id(&self) -> String {
@@ -40,14 +40,14 @@ impl<T: Clone> NestedValue<T> for ConstValue<T> {
     }
     //
     //
-    fn store(&mut self, _: &str, _: T) {
-        panic!("{}.store | Store does not supported for constant", self.id);
+    fn store(&mut self, _: &str, value: T) {
+        self.value = value
     }
 }
 //
 //
-impl<T: Debug> std::fmt::Debug for ConstValue<T> {
+impl<T: Debug> std::fmt::Debug for MutValue<T> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("ConstValue").field("id", &self.id).field("value", &self.value).finish()
+        f.debug_struct("MutValue").field("id", &self.id).field("value", &self.value).finish()
     }
 }
