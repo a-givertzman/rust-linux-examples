@@ -11,16 +11,23 @@ pub struct MutValue<T> {
 }
 //
 //
-impl<T> MutValue<T> {
+impl<T: Clone + Debug> MutValue<T> {
     ///
     /// Returns new instance of the [MutValue]
     pub fn new(value: T) -> Self {
-        Self {
+        let mut me = Self {
             id: "MutValue".to_owned(),
             inited: false,
-            value,
+            value: value.clone(),
             edited: vec![],
-        }
+        };
+        Self::register_edit(&mut me, "self", &value);
+        me
+    }
+    ///
+    /// Registers edited event
+    fn register_edit(&mut self, editor: &str, value: &T) {
+        self.edited.push(format!("{}. {} - {} ({:?})", self.edited.len() + 1, Utc::now(), editor, value));
     }
 }
 //
@@ -45,10 +52,16 @@ impl<T: Clone + Debug> NestedValue<T> for MutValue<T> {
     //
     //
     fn store(&mut self, editor: &str, _: &str, value: T) -> Result<(), String> {
-        self.value = value.clone();
-        self.edited.push(format!("{}. {} - {} ({:?})", self.edited.len() + 1, Utc::now(), editor, value));
-        println!("{}.store | edited: {:#?}", self.id, self.edited);
+        self.register_edit(editor, &value);
+        self.value = value;
+        // self.edited.push(format!("{}. {} - {} ({:?})", self.edited.len() + 1, Utc::now(), editor, value));
+        // println!("{}.store | edited: {:#?}", self.id, self.edited);
         Ok(())
+    }
+    //
+    //
+    fn edited(&self, _: &str) -> Result<Vec<String>, String> {
+        Ok(self.edited.clone())
     }
 }
 //

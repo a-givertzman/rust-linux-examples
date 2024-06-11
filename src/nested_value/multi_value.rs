@@ -14,7 +14,7 @@ impl<T> MultiValue<T> {
     /// Returns new instance of the [MultiValue]
     /// - values - array of the pairs 'key' - 'NestedValue' 
     pub fn new<const N: usize>(values: [(&str, Box<dyn NestedValue<T>>); N]) -> Self {
-        let id = "MultiValue".to_owned();
+        let id = "".to_owned();
         let mut me = Self {
             id: id.to_owned(),
             inited: false,
@@ -69,6 +69,21 @@ impl<T> NestedValue<T> for MultiValue<T> {
                 node.store(editor, &key, value)
             }
             None => Err(format!("{}.store | Not found key '{}'", self.id, key)),
+        }
+    }
+    //
+    //
+    fn edited(&self, key: &str) -> Result<Vec<String>, String> {
+        let mut keys = key.split('/');
+        let key = keys.next().unwrap();
+        // println!("{}.get | -> key: {}", self.id, key);
+        match self.values.get(key) {
+            Some(node) => {
+                let key: String = keys.map(|v| format!("{}/", v)).collect();
+                // println!("{}.get | key -> : {}", self.id, key);
+                node.edited(&key)
+            }
+            None => Err(format!("{}.get | Not found key '{}'", self.id, key)),
         }
     }
 }

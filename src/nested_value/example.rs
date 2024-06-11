@@ -276,5 +276,7 @@ fn main() {
     let key = "v1/v2/f64";
     println!("multi value '{}': {:#?}", key, value.get(key));
     value.store("main", key, Value::F64(222.222222 + 222.222)).unwrap();
+    value.store("main", key, Value::F64(222.222222 + 333.333)).unwrap();
+    println!("multi value edited '{}': {:#?}", key, value.edited(key));
     println!("multi value '{}': {:#?}", key, value.get(key));
 }

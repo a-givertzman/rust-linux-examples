@@ -20,4 +20,10 @@ pub trait NestedValue<T> {
         (_, _, _) = (editor, key, value);
         panic!("{}.store | Store does not supported", self.id())
     }
+    ///
+    /// Returns history of edited value by nested value path, actual for MutValue only
+    fn edited(&self, key: &str) -> Result<Vec<String>, String> {
+        _ = key;
+        Ok(vec![])
+    }
 }
