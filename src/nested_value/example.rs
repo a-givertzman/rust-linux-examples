@@ -178,7 +178,7 @@ fn main() {
     println!();
     let address = "";
     let auth_token = "";
-    let database = "";
+    let database = "nested_value";
     let mut value = MultiValue::new([
         ("u64", Box::new(ConstValue::new(Value::U64(1234567890)))),
         ("i64", Box::new(ConstValue::new(Value::I64(-1234567890)))),
@@ -233,7 +233,7 @@ fn main() {
                     self_id, address, auth_token,
                     ApiQuery::new(ApiQueryKind::Sql(ApiQuerySql::new(
                         database,
-                        "select array from fetch_value_array_test;"
+                        "select array from array_test;"
                     )), false),
                     false, false,
                 ),
@@ -257,7 +257,7 @@ fn main() {
                     self_id, address, auth_token,
                     ApiQuery::new(ApiQueryKind::Sql(ApiQuerySql::new(
                         database,
-                        "select * from fetch_value_map_test;"
+                        "select * from map_test;"
                     )), false),
                     false, false,
                 ),
