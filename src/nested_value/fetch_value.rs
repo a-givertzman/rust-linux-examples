@@ -4,21 +4,21 @@ use crate::nested_value::NestedValue;
 ///
 /// Returns the data fetched from the ApiRequest on the first call get() method.
 /// Next time returns cached value.
-pub struct FetchValue<R> {
+pub struct FetchValue<T> {
     id: String,
     inited: bool,
-    value: RefCell<Option<R>>,
+    value: RefCell<Option<T>>,
     request: RefCell<ApiRequest>,
-    parser: Box<dyn Fn(&[u8]) -> Result<R, String>>,
+    parser: Box<dyn Fn(&[u8]) -> Result<T, String>>,
 }
 //
 //
-impl<R> FetchValue<R> {
+impl<T> FetchValue<T> {
     ///
     /// Returns new instance of the [FetchedValue]
     /// - request: ApiRequest - fetches data from the API Server
     /// - parser: closure receives raw API result, returns parsed data
-    pub fn new(request: ApiRequest, parser: Box<dyn Fn(&[u8]) -> Result<R, String>>) -> Self {
+    pub fn new(request: ApiRequest, parser: Box<dyn Fn(&[u8]) -> Result<T, String>>) -> Self {
         Self {
             id: "FetchValue".to_owned(),
             inited: false,
@@ -69,7 +69,7 @@ impl<T: Clone> NestedValue<T> for FetchValue<T> {
 }
 //
 //
-impl<R: Debug> std::fmt::Debug for FetchValue<R> {
+impl<T: Debug> std::fmt::Debug for FetchValue<T> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("FetchValue").field("id", &self.id).field("value", &self.value).finish()
     }

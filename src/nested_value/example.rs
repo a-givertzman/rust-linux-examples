@@ -110,7 +110,9 @@ mod multi_value;
 mod fetch_value;
 mod mut_value;
 mod value;
-use api_tools::client::{api_query::{ApiQuery, ApiQueryKind, ApiQuerySql}, api_request::ApiRequest};
+use std::time::Instant;
+
+use api_tools::{api::reply::api_reply::ApiReply, client::{api_query::{ApiQuery, ApiQueryKind, ApiQuerySql}, api_request::ApiRequest}};
 use debug_session::debug_session::{DebugSession, LogLevel};
 use fetch_value::FetchValue;
 use indexmap::IndexMap;
@@ -206,11 +208,8 @@ fn main() {
                         ApiQuery::new(ApiQueryKind::Sql(ApiQuerySql::new(database, "select 222;")), false),
                         false, false,
                     ),
-                    Box::new(|input| {
-                        match input.try_into() {
-                            Ok(bytes) => Ok(Value::U64(u32::from_be_bytes(bytes) as u64)),
-                            Err(_) => Err(format!("fetch-222 | invalid input: {:?}", input)),
-                        }
+                    Box::new(|reply| {
+                        parse_value(reply)
                     }),
                 ))),
                 ("fetch-222.222", Box::new(FetchValue::new(
@@ -219,11 +218,8 @@ fn main() {
                         ApiQuery::new(ApiQueryKind::Sql(ApiQuerySql::new(database, "select 222.222;")), false),
                         false, false,
                     ),
-                    Box::new(|input| {
-                        match input.try_into() {
-                            Ok(bytes) => Ok(Value::F64(f64::from_be_bytes(bytes))),
-                            Err(_) => Err(format!("fetch-222.222 | invalid input: {:?}", input)),
-                        }
+                    Box::new(|reply| {
+                        parse_value(reply)
                     }),
                 ))),
 
@@ -233,22 +229,14 @@ fn main() {
                     self_id, address, auth_token,
                     ApiQuery::new(ApiQueryKind::Sql(ApiQuerySql::new(
                         database,
-                        "select array from array_test;"
+                        "select value from array_test;"
                     )), false),
                     false, false,
                 ),
-                // ApiRequest::new(
-                //     serde_json::to_string(&vec![123, 456, 789])
-                //         .unwrap_or_else(|err| panic!("fetch-vec | to json error: {:#?}", err)).as_bytes(),
-                // ),
                 Box::new(|reply| {
-                    match serde_json::from_slice(reply) {
-                        Ok(reply) => {
-                            let reply: Vec<u64> = reply;
-                            // Ok(reply)
-                            Ok(Value::Vec(reply.into_iter().map(|v| Value::U64(v)).collect()))
-                        }
-                        Err(err) => Err(format!("fetch-vec | from json error: {:#?}", err)),
+                    match parse_array(reply) {
+                        Ok(v) => Ok(Value::Vec(v)),
+                        Err(err) => Err(format!("fetch-vec | error: {:#?}", err)),
                     }
                 }),
             ))),
@@ -257,25 +245,19 @@ fn main() {
                     self_id, address, auth_token,
                     ApiQuery::new(ApiQueryKind::Sql(ApiQuerySql::new(
                         database,
-                        "select * from map_test;"
+                        "select key, value from map_test;"
                     )), false),
                     false, false,
                 ),
-                // ApiRequest::new(
-                //     r#"{
-                //         "key1": 111.111,
-                //         "key2": 222.222,
-                //         "key3": 333.333
-                //     }"#.as_bytes(),
-                // ),
                 Box::new(|reply| {
-                    match serde_json::from_slice(reply) {
+                    match parse_map(reply) {
                         Ok(reply) => {
-                            let reply: IndexMap<&str, f64> = reply;
-                            // Ok(reply)
-                            Ok(Value::Map(reply.into_iter().map(|(key, value)| (Value::from(key), Value::from(value))).collect()))
-                        }
-                        Err(err) => Err(format!("fetch-vec | from json error: {:#?}", err)),
+                            let reply = reply
+                                .into_iter().map(|(key, value)| (Value::String(key), Value::F64(value)))
+                                .collect();
+                            Ok(Value::Map(reply))
+                        },
+                        Err(err) => Err(format!("fetch-vec | parse error: {:#?}", err)),
                     }
                 }),
             ))),
@@ -296,6 +278,7 @@ fn main() {
         "v1/fetch-map",
         "v1/fetch-map",
     ];
+    let time = Instant::now();
     for key in keys {
         println!("multi value '{}': {:#?}", key, value.get(key));
         println!();
@@ -306,4 +289,188 @@ fn main() {
     value.store(self_id, key, Value::F64(222.222222 + 333.333)).unwrap();
     println!("multi value edited '{}': {:#?}", key, value.edited(key));
     println!("multi value '{}': {:#?}", key, value.get(key));
+    println!("Total elapse: {:#?}", time.elapsed());
+}
+///
+///
+/// 
+/// 
+/// 
+/// 
+/// 
+/// Test simple fetched values
+fn _main() {
+    let time = Instant::now();
+    for _ in 0..1 {
+        request_value();
+        request_array();
+        request_map();
+    }
+    println!("Total elapse: {:#?}", time.elapsed());
+
+}
+///
+/// 
+fn parse_value(reply: &[u8]) -> Result<Value, String> {
+    match serde_json::from_slice(reply) {
+        Ok(reply) => {
+            let reply: ApiReply = reply;
+            match reply.data.first() {
+                Some(row) => {
+                    match row.values().next() {
+                        Some(value) => {
+                            match value {
+                                serde_json::Value::Null => Ok(Value::Null),
+                                serde_json::Value::Bool(v) => Ok(Value::Bool(*v)),
+                                serde_json::Value::Number(v) => {
+                                    if v.is_f64() {
+                                        Ok(Value::F64(v.as_f64().unwrap()))
+                                    } else if v.is_i64() {
+                                        Ok(Value::I64(v.as_i64().unwrap()))
+                                    } else if v.is_u64() {
+                                        Ok(Value::U64(v.as_u64().unwrap()))
+                                    } else {
+                                        Err(format!("request_value | Unknown numeric type: {:?}", v))
+                                    }
+                                }
+                                serde_json::Value::String(v) => Ok(Value::String(v.to_owned())),
+                                serde_json::Value::Array(_) => Err(format!("request_value | Simple types only supported, but found Array")),
+                                serde_json::Value::Object(_) => Err(format!("request_value | Simple types only supported, but found Mapping")),
+                            }
+                        },
+                        None => Err(format!("request_value | value not present in the reply: {:?}", reply)),
+                    }
+                }
+                None => Err(format!("request_value | value not present in the reply: {:?}", reply)),
+            }
+        },
+        Err(err) => Err(format!("parse array error: {:?}", err)),
+    }
+}
+///
+/// Request single value
+fn request_value() {
+    let self_id = "main";
+    let address = "0.0.0.0:8080";
+    let auth_token = "";
+    let database = "nested_value";
+    let debug = true;
+    let value = FetchValue::new(
+        ApiRequest::new(
+            self_id, address, auth_token,
+            ApiQuery::new(ApiQueryKind::Sql(ApiQuerySql::new(database, "select 222;")), false),
+            false, debug,
+        ),
+        Box::new(|reply| {
+            parse_value(reply)
+        }),
+    );
+    let time = Instant::now();
+    match value.get("") {
+        Ok(value) => {
+            println!("reply: {:#?}", value);
+        },
+        Err(err) => {
+            println!("get value error: : {:?}", err);
+        },
+    }
+    println!("Elapse: {:#?}", time.elapsed());
+}
+///
+/// Extract array from the ApiReply
+fn parse_array(reply: &[u8]) -> Result<Vec<Value>, String> {
+    match serde_json::from_slice(reply) {
+        Ok(reply) => {
+            let reply: ApiReply = reply;
+            let mut array = vec![];
+            for row in reply.data {
+                let value = row.values().next().unwrap().clone();
+                array.push(Value::I64(value.as_i64().unwrap()))
+            }
+            Ok(array)
+        },
+        Err(err) => Err(format!("parse array error: {:?}", err)),
+    }
+}
+///
+/// Request array
+fn request_array() {
+    let self_id = "main";
+    let address = "0.0.0.0:8080";
+    let auth_token = "";
+    let database = "nested_value";
+    let debug = true;
+    let value = FetchValue::new(
+        ApiRequest::new(
+            self_id, address, auth_token,
+            ApiQuery::new(ApiQueryKind::Sql(ApiQuerySql::new(
+                database,
+                "select value from array_test;"
+            )), false),
+            false, debug,
+        ),
+        Box::new(|reply| {
+            parse_array(reply)
+        }),
+    );
+    let time = Instant::now();
+    match value.get("") {
+        Ok(value) => {
+            println!("reply: {:#?}", value);
+        },
+        Err(err) => {
+            println!("get value error: : {:?}", err);
+        },
+    }
+    println!("Elapse: {:#?}", time.elapsed());
+}
+///
+/// Extract array from the ApiReply
+fn parse_map(reply: &[u8]) -> Result<IndexMap::<String, f64>, String> {
+    match serde_json::from_slice(reply) {
+        Ok(reply) => {
+            let reply: ApiReply = reply;
+            // println!("reply: {:#?}", reply);
+            let mut map = IndexMap::<String, f64>::from([]);
+            for row in reply.data {
+                let key = row.get("key").unwrap();
+                let value = row.get("value").unwrap();
+                map.insert(key.as_str().unwrap().to_owned(), value.as_str().unwrap().parse().unwrap());
+            }
+            Ok(map)
+        },
+        Err(err) => Err(format!("parse array error: {:?}", err)),
+    }
+}
+///
+/// Request map
+fn request_map() {
+    let self_id = "main";
+    let address = "0.0.0.0:8080";
+    let auth_token = "";
+    let database = "nested_value";
+    let debug = true;
+    let value = FetchValue::new(
+        ApiRequest::new(
+            self_id, address, auth_token,
+            ApiQuery::new(ApiQueryKind::Sql(ApiQuerySql::new(
+                database,
+                "select key, value from map_test;"
+            )), false),
+            false, debug,
+        ),
+        Box::new(|reply| {
+            parse_map(reply)
+        }),
+    );
+    let time = Instant::now();
+    match value.get("") {
+        Ok(value) => {
+            println!("reply: {:#?}", value);
+        },
+        Err(err) => {
+            println!("get value error: : {:?}", err);
+        },
+    }
+    println!("Elapse: {:#?}", time.elapsed());
 }
