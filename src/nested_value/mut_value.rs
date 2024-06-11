@@ -16,7 +16,7 @@ impl<T> MutValue<T> {
     /// Returns new instance of the [MutValue]
     pub fn new(value: T) -> Self {
         Self {
-            id: std::any::type_name::<Self>().to_owned(),
+            id: "MutValue".to_owned(),
             inited: false,
             value,
             edited: vec![],
@@ -33,8 +33,8 @@ impl<T: Clone + Debug> NestedValue<T> for MutValue<T> {
     }
     //
     //
-    fn init(&mut self, parent: &str) {
-        self.id = parent.to_owned();
+    fn init(&mut self, key: &str) {
+        self.id = key.to_owned();
         self.inited = true;
     }
     //

@@ -20,7 +20,7 @@ impl<R> FetchValue<R> {
     /// - parser: closure receives raw API result, returns parsed data
     pub fn new(request: ApiRequest, parser: Box<dyn Fn(&[u8]) -> Result<R, String>>) -> Self {
         Self {
-            id: std::any::type_name::<Self>().to_owned(),
+            id: "FetchValue".to_owned(),
             inited: false,
             value: RefCell::new(None),
             request,
@@ -38,8 +38,8 @@ impl<T: Clone> NestedValue<T> for FetchValue<T> {
     }
     //
     //
-    fn init(&mut self, parent: &str) {
-        self.id = format!("{}/{}", parent, self.id);
+    fn init(&mut self, key: &str) {
+        self.id = key.to_owned();
         self.inited = true;
     }
     //

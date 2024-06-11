@@ -6,7 +6,7 @@ pub trait NestedValue<T> {
     fn id(&self) -> String;
     ///
     /// 
-    fn init(&mut self, parent: &str);
+    fn init(&mut self, key: &str);
     ///
     /// Returns contained value by nested value path
     /// (path required for the MultiValue, in other cases can be empty).

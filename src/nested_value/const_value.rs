@@ -14,7 +14,7 @@ impl<T> ConstValue<T> {
     /// Returns new instance of the [ConstValue]
     pub fn new(value: T) -> Self {
         Self {
-            id: std::any::type_name::<Self>().to_owned(),
+            id: "ConstValue".to_owned(),
             inited: false,
             value,
         }
@@ -30,8 +30,8 @@ impl<T: Clone> NestedValue<T> for ConstValue<T> {
     }
     //
     //
-    fn init(&mut self, parent: &str) {
-        self.id = format!("{}/{}", parent, self.id);
+    fn init(&mut self, key: &str) {
+        self.id = key.to_owned();
         self.inited = true;
     }
     //

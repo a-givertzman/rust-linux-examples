@@ -14,7 +14,7 @@ impl<T> MultiValue<T> {
     /// Returns new instance of the [MultiValue]
     /// - values - array of the pairs 'key' - 'NestedValue' 
     pub fn new<const N: usize>(values: [(&str, Box<dyn NestedValue<T>>); N]) -> Self {
-        let id = std::any::type_name::<Self>().to_owned();
+        let id = "MultiValue".to_owned();
         let mut me = Self {
             id: id.to_owned(),
             inited: false,
