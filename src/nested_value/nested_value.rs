@@ -5,7 +5,7 @@ pub trait NestedValue<T> {
     /// Returns the idinifier of the nested values node
     fn id(&self) -> String;
     ///
-    /// 
+    /// Do not use this method, used for internal purposes
     fn init(&mut self, key: &str);
     ///
     /// Returns contained value by nested value path
