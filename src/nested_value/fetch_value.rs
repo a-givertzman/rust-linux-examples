@@ -1,5 +1,5 @@
 use std::{cell::RefCell, fmt::Debug};
-use log::debug;
+use api_tools::client::api_request::ApiRequest;
 use crate::nested_value::NestedValue;
 ///
 /// Returns the data fetched from the ApiRequest on the first call get() method.
@@ -8,7 +8,7 @@ pub struct FetchValue<R> {
     id: String,
     inited: bool,
     value: RefCell<Option<R>>,
-    request: ApiRequest,
+    request: RefCell<ApiRequest>,
     parser: Box<dyn Fn(&[u8]) -> Result<R, String>>,
 }
 //
@@ -23,7 +23,7 @@ impl<R> FetchValue<R> {
             id: "FetchValue".to_owned(),
             inited: false,
             value: RefCell::new(None),
-            request,
+            request: RefCell::new(request),
             parser,
         }
     }
@@ -46,7 +46,7 @@ impl<T: Clone> NestedValue<T> for FetchValue<T> {
     //
     fn get(&self, _: &str) -> Result<T, String> {
         if self.value.borrow().is_none() {
-            match self.request.fetch() {
+            match self.request.borrow_mut().fetch(false) {
                 Ok(reply) => {
                     match (self.parser)(&reply) {
                         Ok(reply) => {
@@ -72,22 +72,5 @@ impl<T: Clone> NestedValue<T> for FetchValue<T> {
 impl<R: Debug> std::fmt::Debug for FetchValue<R> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("FetchValue").field("id", &self.id).field("value", &self.value).finish()
-    }
-}
-
-///
-/// Demo Mok instead real ApiRequest
-pub struct ApiRequest {
-    value: Vec<u8>,
-}
-impl ApiRequest {
-    pub fn new(value: &[u8]) -> Self {
-        Self {
-            value: value.to_owned(),
-        }
-    }
-    pub fn fetch(&self) -> Result<Vec<u8>, String> {
-        debug!("ApiRequest.fetch | fetched value: {:?}", self.value);
-        Ok(self.value.clone())
     }
 }

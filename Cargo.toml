@@ -33,7 +33,7 @@ regex = "^1.10"
 
 indexmap = "^2.2"
 
-api-tools = { git = "https://github.com/a-givertzman/rust-api-tools.git", tag = "0.0.6" }
+api-tools = { git = "https://github.com/a-givertzman/rust-api-tools.git", tag = "0.1.0" }
 
 
 [[bin]]

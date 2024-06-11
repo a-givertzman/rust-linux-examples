@@ -110,8 +110,9 @@ mod multi_value;
 mod fetch_value;
 mod mut_value;
 mod value;
+use api_tools::client::{api_query::{ApiQuery, ApiQueryKind, ApiQuerySql}, api_request::ApiRequest};
 use debug_session::debug_session::{DebugSession, LogLevel};
-use fetch_value::{ApiRequest, FetchValue};
+use fetch_value::FetchValue;
 use indexmap::IndexMap;
 use log::error;
 use multi_value::MultiValue;
@@ -125,7 +126,7 @@ use crate::{
 //
 fn main() {
     DebugSession::init(LogLevel::Debug);
-
+    let self_id = "main";
     let value = ConstValue::new(Value::Null);
     println!("const value: {:#?}", value);
     println!("const value: {:?}", value.get(""));
@@ -151,10 +152,10 @@ fn main() {
     println!("multi value {}: {:?}", key, flags.get(key));
     println!("multi value {}: {:?}", key, flags.get(key));
     let key = "bool-flags/flag-falsed";
-    flags.store("main", key, true).unwrap_or_else(|err| error!("main | Store error: {}", err));
+    flags.store(self_id, key, true).unwrap_or_else(|err| error!("main | Store error: {}", err));
     println!("multi value {}: {:?}", key, flags.get(key));
     let key = "bool-flags/flag-true";
-    let result = flags.store("main", key, true);
+    let result = flags.store(self_id, key, true);
     println!("multi result {}: {:?}", key, result);
     println!("multi value {}: {:?}", key, flags.get(key));
     println!();
@@ -172,10 +173,12 @@ fn main() {
     println!("multi value '{}': {:?}", key, flags.get(key));
     let key = "int-flags/flag-876";
     println!("multi value '{}': {:?}", key, flags.get(key));
-    flags.store("main", key, 888).unwrap();
+    flags.store(self_id, key, 888).unwrap();
     println!("multi value '{}': {:?}", key, flags.get(key));
     println!();
-
+    let address = "";
+    let auth_token = "";
+    let database = "";
     let mut value = MultiValue::new([
         ("u64", Box::new(ConstValue::new(Value::U64(1234567890)))),
         ("i64", Box::new(ConstValue::new(Value::I64(-1234567890)))),
@@ -198,7 +201,11 @@ fn main() {
                 ]))))),
 
                 ("fetch-222", Box::new(FetchValue::new(
-                    ApiRequest::new(&u32::to_be_bytes(222)),
+                    ApiRequest::new(
+                        self_id, address, auth_token,
+                        ApiQuery::new(ApiQueryKind::Sql(ApiQuerySql::new(database, "select 222;")), false),
+                        false, false,
+                    ),
                     Box::new(|input| {
                         match input.try_into() {
                             Ok(bytes) => Ok(Value::U64(u32::from_be_bytes(bytes) as u64)),
@@ -207,7 +214,11 @@ fn main() {
                     }),
                 ))),
                 ("fetch-222.222", Box::new(FetchValue::new(
-                    ApiRequest::new(&f64::to_be_bytes(222.222)),
+                    ApiRequest::new(
+                        self_id, address, auth_token,
+                        ApiQuery::new(ApiQueryKind::Sql(ApiQuerySql::new(database, "select 222.222;")), false),
+                        false, false,
+                    ),
                     Box::new(|input| {
                         match input.try_into() {
                             Ok(bytes) => Ok(Value::F64(f64::from_be_bytes(bytes))),
@@ -219,9 +230,17 @@ fn main() {
             ]))),
             ("fetch-vec", Box::new(FetchValue::new(
                 ApiRequest::new(
-                    serde_json::to_string(&vec![123, 456, 789])
-                        .unwrap_or_else(|err| panic!("fetch-vec | to json error: {:#?}", err)).as_bytes(),
+                    self_id, address, auth_token,
+                    ApiQuery::new(ApiQueryKind::Sql(ApiQuerySql::new(
+                        database,
+                        "select array from fetch_value_array_test;"
+                    )), false),
+                    false, false,
                 ),
+                // ApiRequest::new(
+                //     serde_json::to_string(&vec![123, 456, 789])
+                //         .unwrap_or_else(|err| panic!("fetch-vec | to json error: {:#?}", err)).as_bytes(),
+                // ),
                 Box::new(|reply| {
                     match serde_json::from_slice(reply) {
                         Ok(reply) => {
@@ -235,12 +254,20 @@ fn main() {
             ))),
             ("fetch-map", Box::new(FetchValue::new(
                 ApiRequest::new(
-                    r#"{
-                        "key1": 111.111,
-                        "key2": 222.222,
-                        "key3": 333.333
-                    }"#.as_bytes(),
+                    self_id, address, auth_token,
+                    ApiQuery::new(ApiQueryKind::Sql(ApiQuerySql::new(
+                        database,
+                        "select * from fetch_value_map_test;"
+                    )), false),
+                    false, false,
                 ),
+                // ApiRequest::new(
+                //     r#"{
+                //         "key1": 111.111,
+                //         "key2": 222.222,
+                //         "key3": 333.333
+                //     }"#.as_bytes(),
+                // ),
                 Box::new(|reply| {
                     match serde_json::from_slice(reply) {
                         Ok(reply) => {
@@ -275,8 +302,8 @@ fn main() {
     }
     let key = "v1/v2/f64";
     println!("multi value '{}': {:#?}", key, value.get(key));
-    value.store("main", key, Value::F64(222.222222 + 222.222)).unwrap();
-    value.store("main", key, Value::F64(222.222222 + 333.333)).unwrap();
+    value.store(self_id, key, Value::F64(222.222222 + 222.222)).unwrap();
+    value.store(self_id, key, Value::F64(222.222222 + 333.333)).unwrap();
     println!("multi value edited '{}': {:#?}", key, value.edited(key));
     println!("multi value '{}': {:#?}", key, value.get(key));
 }
