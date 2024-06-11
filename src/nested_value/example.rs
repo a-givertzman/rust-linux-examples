@@ -176,7 +176,7 @@ fn main() {
     flags.store(self_id, key, 888).unwrap();
     println!("multi value '{}': {:?}", key, flags.get(key));
     println!();
-    let address = "";
+    let address = "127.0.0.1:8080";
     let auth_token = "";
     let database = "nested_value";
     let mut value = MultiValue::new([
