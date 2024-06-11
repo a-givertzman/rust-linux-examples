@@ -158,5 +158,9 @@ name = "overlapping_traits"
 path = "src/traits/overlapping_traits.rs"
 
 [[bin]]
+name = "simple_value"
+path = "src/nested_value/example_01.rs"
+
+[[bin]]
 name = "nested_value"
-path = "src/nested_value/example.rs"
+path = "src/nested_value/example_02.rs"
