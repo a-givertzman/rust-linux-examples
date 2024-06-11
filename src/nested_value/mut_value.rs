@@ -1,11 +1,13 @@
 use std::fmt::Debug;
-use regex::Regex;
+use chrono::Utc;
 use crate::nested_value::NestedValue;
 ///
 /// Contains the mutable value, returns on call get() method
 pub struct MutValue<T> {
     id: String,
+    inited: bool,
     value: T,
+    edited: Vec<String>,
 }
 //
 //
@@ -13,15 +15,11 @@ impl<T> MutValue<T> {
     ///
     /// Returns new instance of the [MutValue]
     pub fn new(value: T) -> Self {
-        let re = Regex::new(r"^(?:.*::)?(.+)$").unwrap();
-        let raw_type_name = std::any::type_name::<Self>();
-        let id = match re.captures(raw_type_name) {
-            Some(caps) => caps.get(1).map_or(raw_type_name, |v| v.as_str()),
-            None => raw_type_name,
-        };
         Self {
-            id: id.to_owned(),
+            id: std::any::type_name::<Self>().to_owned(),
+            inited: false,
             value,
+            edited: vec![],
         }
     }
 }
@@ -35,13 +33,21 @@ impl<T: Clone> NestedValue<T> for MutValue<T> {
     }
     //
     //
+    fn init(&mut self, parent: &str) {
+        self.id = parent.to_owned();
+        self.inited = true;
+    }
+    //
+    //
     fn get(&self, _: &str) -> Result<T, String> {
         Ok(self.value.clone())
     }
     //
     //
-    fn store(&mut self, _: &str, value: T) -> Result<(), String> {
+    fn store(&mut self, editor: &str, _: &str, value: T) -> Result<(), String> {
         self.value = value;
+        self.edited.push(format!("{}. {} - {}", self.edited.len() + 1, Utc::now(), editor));
+        println!("{}.store | edited: {:#?}", self.id, self.edited);
         Ok(())
     }
 }

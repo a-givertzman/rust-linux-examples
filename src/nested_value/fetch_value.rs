@@ -1,12 +1,12 @@
 use std::{cell::RefCell, fmt::Debug};
 use log::debug;
-use regex::Regex;
 use crate::nested_value::NestedValue;
 ///
 /// Returns the data fetched from the ApiRequest on the first call get() method.
 /// Next time returns cached value.
 pub struct FetchValue<R> {
     id: String,
+    inited: bool,
     value: RefCell<Option<R>>,
     request: ApiRequest,
     parser: Box<dyn Fn(&[u8]) -> Result<R, String>>,
@@ -19,14 +19,9 @@ impl<R> FetchValue<R> {
     /// - request: ApiRequest - fetches data from the API Server
     /// - parser: closure receives raw API result, returns parsed data
     pub fn new(request: ApiRequest, parser: Box<dyn Fn(&[u8]) -> Result<R, String>>) -> Self {
-        let re = Regex::new(r"^(?:.*::)?(.+)$").unwrap();
-        let raw_type_name = std::any::type_name::<Self>();
-        let id = match re.captures(raw_type_name) {
-            Some(caps) => caps.get(1).map_or(raw_type_name, |v| v.as_str()),
-            None => raw_type_name,
-        };
         Self {
-            id: id.to_owned(),
+            id: std::any::type_name::<Self>().to_owned(),
+            inited: false,
             value: RefCell::new(None),
             request,
             parser,
@@ -40,6 +35,12 @@ impl<T: Clone> NestedValue<T> for FetchValue<T> {
     //
     fn id(&self) -> String {
         self.id.clone()
+    }
+    //
+    //
+    fn init(&mut self, parent: &str) {
+        self.id = format!("{}/{}", parent, self.id);
+        self.inited = true;
     }
     //
     //

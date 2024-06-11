@@ -113,6 +113,7 @@ mod value;
 use debug_session::debug_session::{DebugSession, LogLevel};
 use fetch_value::{ApiRequest, FetchValue};
 use indexmap::IndexMap;
+use log::error;
 use multi_value::MultiValue;
 use mut_value::MutValue;
 use value::Value;
@@ -149,11 +150,11 @@ fn main() {
     let key = "bool-flags/flag-false";
     println!("multi value {}: {:?}", key, flags.get(key));
     println!("multi value {}: {:?}", key, flags.get(key));
-    let key = "bool-flags/flag-false";
-    flags.store(key, true).unwrap();
+    let key = "bool-flags/flag-falsed";
+    flags.store("main", key, true).unwrap_or_else(|err| error!("main | Store error: {}", err));
     println!("multi value {}: {:?}", key, flags.get(key));
     let key = "bool-flags/flag-true";
-    let result = flags.store(key, true);
+    let result = flags.store("main", key, true);
     println!("multi result {}: {:?}", key, result);
     println!("multi value {}: {:?}", key, flags.get(key));
     println!();
@@ -171,7 +172,7 @@ fn main() {
     println!("multi value '{}': {:?}", key, flags.get(key));
     let key = "int-flags/flag-876";
     println!("multi value '{}': {:?}", key, flags.get(key));
-    flags.store(key, 888).unwrap();
+    flags.store("main", key, 888).unwrap();
     println!("multi value '{}': {:?}", key, flags.get(key));
     println!();
 
@@ -274,6 +275,6 @@ fn main() {
     }
     let key = "v1/v2/f64";
     println!("multi value '{}': {:#?}", key, value.get(key));
-    value.store(key, Value::F64(222.222222 + 222.222)).unwrap();
+    value.store("main", key, Value::F64(222.222222 + 222.222)).unwrap();
     println!("multi value '{}': {:#?}", key, value.get(key));
 }

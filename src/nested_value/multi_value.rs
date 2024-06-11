@@ -1,10 +1,10 @@
 use indexmap::IndexMap;
-use regex::Regex;
 use crate::nested_value::NestedValue;
 ///
 /// Containing multiple nested values
 pub struct MultiValue<T> {
     id: String,
+    inited: bool,
     values: IndexMap<String, Box<dyn NestedValue<T>>>
 }
 //
@@ -14,16 +14,14 @@ impl<T> MultiValue<T> {
     /// Returns new instance of the [MultiValue]
     /// - values - array of the pairs 'key' - 'NestedValue' 
     pub fn new<const N: usize>(values: [(&str, Box<dyn NestedValue<T>>); N]) -> Self {
-        let re = Regex::new(r"^(?:.*::)?(.+)$").unwrap();
-        let raw_type_name = std::any::type_name::<Self>();
-        let id = match re.captures(raw_type_name) {
-            Some(caps) => caps.get(1).map_or(raw_type_name, |v| v.as_str()),
-            None => raw_type_name,
-        };
-        Self {
+        let id = std::any::type_name::<Self>().to_owned();
+        let mut me = Self {
             id: id.to_owned(),
+            inited: false,
             values: IndexMap::from(values.map(|(key, value)| (key.to_owned(), value))),
-        }
+        };
+        me.init(&id);
+        me
     }
 }
 //
@@ -33,6 +31,15 @@ impl<T> NestedValue<T> for MultiValue<T> {
     //
     fn id(&self) -> String {
         self.id.clone()
+    }
+    //
+    //
+    fn init(&mut self, key: &str) {
+        self.id = key.to_owned();
+        for (key, node) in &mut self.values {
+            node.init(&format!("{}/{}", self.id, key))
+        }
+        self.inited = true;
     }
     //
     //
@@ -51,7 +58,7 @@ impl<T> NestedValue<T> for MultiValue<T> {
     }
     //
     //
-    fn store(&mut self, key: &str, value: T) -> Result<(), String> {
+    fn store(&mut self, editor: &str, key: &str, value: T) -> Result<(), String> {
         let mut keys = key.split('/');
         let key = keys.next().unwrap();
         // println!("{}.store | -> key: {}", self.id, key);
@@ -59,7 +66,7 @@ impl<T> NestedValue<T> for MultiValue<T> {
             Some(node) => {
                 let key: String = keys.map(|v| format!("{}/", v)).collect();
                 // println!("{}.store | key -> : {}", self.id, key);
-                node.store(&key, value)
+                node.store(editor, &key, value)
             }
             None => Err(format!("{}.store | Not found key '{}'", self.id, key)),
         }
