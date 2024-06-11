@@ -36,7 +36,7 @@ impl<T> NestedValue<T> for MultiValue<T> {
     }
     //
     //
-    fn get(&self, key: &str) -> T {
+    fn get(&self, key: &str) -> Result<T, String> {
         let mut keys = key.split('/');
         let key = keys.next().unwrap();
         // println!("{}.get | -> key: {}", self.id, key);
@@ -46,12 +46,12 @@ impl<T> NestedValue<T> for MultiValue<T> {
                 // println!("{}.get | key -> : {}", self.id, key);
                 node.get(&key)
             }
-            None => panic!("{}.get | Not found key '{}'", self.id, key),
+            None => Err(format!("{}.get | Not found key '{}'", self.id, key)),
         }
     }
     //
     //
-    fn store(&mut self, key: &str, value: T) {
+    fn store(&mut self, key: &str, value: T) -> Result<(), String> {
         let mut keys = key.split('/');
         let key = keys.next().unwrap();
         // println!("{}.store | -> key: {}", self.id, key);
@@ -61,7 +61,7 @@ impl<T> NestedValue<T> for MultiValue<T> {
                 // println!("{}.store | key -> : {}", self.id, key);
                 node.store(&key, value)
             }
-            None => panic!("{}.store | Not found key '{}'", self.id, key),
+            None => Err(format!("{}.store | Not found key '{}'", self.id, key)),
         }
     }
 }

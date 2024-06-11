@@ -150,7 +150,11 @@ fn main() {
     println!("multi value {}: {:?}", key, flags.get(key));
     println!("multi value {}: {:?}", key, flags.get(key));
     let key = "bool-flags/flag-false";
-    flags.store(key, true);
+    flags.store(key, true).unwrap();
+    println!("multi value {}: {:?}", key, flags.get(key));
+    let key = "bool-flags/flag-true";
+    let result = flags.store(key, true);
+    println!("multi result {}: {:?}", key, result);
     println!("multi value {}: {:?}", key, flags.get(key));
     println!();
 
@@ -167,7 +171,7 @@ fn main() {
     println!("multi value '{}': {:?}", key, flags.get(key));
     let key = "int-flags/flag-876";
     println!("multi value '{}': {:?}", key, flags.get(key));
-    flags.store(key, 888);
+    flags.store(key, 888).unwrap();
     println!("multi value '{}': {:?}", key, flags.get(key));
     println!();
 
@@ -270,6 +274,6 @@ fn main() {
     }
     let key = "v1/v2/f64";
     println!("multi value '{}': {:#?}", key, value.get(key));
-    value.store(key, Value::F64(222.222222 + 222.222));
+    value.store(key, Value::F64(222.222222 + 222.222)).unwrap();
     println!("multi value '{}': {:#?}", key, value.get(key));
 }

@@ -35,13 +35,13 @@ impl<T: Clone> NestedValue<T> for ConstValue<T> {
     }
     //
     //
-    fn get(&self, _: &str) -> T {
-        self.value.clone()
+    fn get(&self, _: &str) -> Result<T, String> {
+        Ok(self.value.clone())
     }
     //
     //
-    fn store(&mut self, _: &str, _: T) {
-        panic!("{}.store | Store does not supported for constant", self.id);
+    fn store(&mut self, _: &str, _: T) -> Result<(), String> {
+        Err(format!("{}.store | Store does not supported for constant", self.id))
     }
 }
 //

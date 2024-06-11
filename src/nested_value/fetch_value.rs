@@ -35,7 +35,7 @@ impl<R> FetchValue<R> {
 }
 //
 //
-impl<R: Clone> NestedValue<R> for FetchValue<R> {
+impl<T: Clone> NestedValue<T> for FetchValue<T> {
     //
     //
     fn id(&self) -> String {
@@ -43,7 +43,7 @@ impl<R: Clone> NestedValue<R> for FetchValue<R> {
     }
     //
     //
-    fn get(&self, _: &str) -> R {
+    fn get(&self, _: &str) -> Result<T, String> {
         if self.value.borrow().is_none() {
             match self.request.fetch() {
                 Ok(reply) => {
@@ -53,16 +53,17 @@ impl<R: Clone> NestedValue<R> for FetchValue<R> {
                                 .borrow_mut()
                                 .replace(reply.clone());
                         }
-                        Err(err) => panic!("{}.get | Parser returns error: {:#?}", self.id, err),
+                        Err(err) => return Err(format!("{}.get | Parser returns error: {:#?}", self.id, err)),
                     }
                 }
-                Err(err) => panic!("{}.get | Request returns error: {:#?}", self.id, err),
+                Err(err) => return Err(format!("{}.get | Request returns error: {:#?}", self.id, err)),
             }
         }
-        self.value
+        Ok(self.value
             .borrow()
             .clone()
             .unwrap_or_else(|| panic!("{}.get | Internal error - cache not initialised", self.id))
+        )
     }
 }
 //

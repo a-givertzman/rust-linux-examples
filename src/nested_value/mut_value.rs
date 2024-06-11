@@ -35,13 +35,14 @@ impl<T: Clone> NestedValue<T> for MutValue<T> {
     }
     //
     //
-    fn get(&self, _: &str) -> T {
-        self.value.clone()
+    fn get(&self, _: &str) -> Result<T, String> {
+        Ok(self.value.clone())
     }
     //
     //
-    fn store(&mut self, _: &str, value: T) {
-        self.value = value
+    fn store(&mut self, _: &str, value: T) -> Result<(), String> {
+        self.value = value;
+        Ok(())
     }
 }
 //
