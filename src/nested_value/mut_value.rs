@@ -25,7 +25,7 @@ impl<T> MutValue<T> {
 }
 //
 //
-impl<T: Clone> NestedValue<T> for MutValue<T> {
+impl<T: Clone + Debug> NestedValue<T> for MutValue<T> {
     //
     //
     fn id(&self) -> String {
@@ -45,8 +45,8 @@ impl<T: Clone> NestedValue<T> for MutValue<T> {
     //
     //
     fn store(&mut self, editor: &str, _: &str, value: T) -> Result<(), String> {
-        self.value = value;
-        self.edited.push(format!("{}. {} - {}", self.edited.len() + 1, Utc::now(), editor));
+        self.value = value.clone();
+        self.edited.push(format!("{}. {} - {} ({:?})", self.edited.len() + 1, Utc::now(), editor, value));
         println!("{}.store | edited: {:#?}", self.id, self.edited);
         Ok(())
     }
