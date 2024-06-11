@@ -86,7 +86,7 @@ dependencies = [
 [[package]]
 name = "api-tools"
 version = "0.0.6"
-source = "git+https://github.com/a-givertzman/rust-api-tools.git?tag=0.1.0#2b4deb2fa1049beb6c8113184f146892dd473725"
+source = "git+https://github.com/a-givertzman/rust-api-tools.git?tag=0.1.1#e7c72798e012074bb8c80bcbb8c5d00f39afab6b"
 dependencies = [
  "debugging",
  "env_logger",
@@ -95,7 +95,7 @@ dependencies = [
  "postgres",
  "serde",
  "serde_json",
- "testing",
+ "testing 0.0.2",
 ]
 
 [[package]]
@@ -724,6 +724,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "nested-value"
+version = "0.0.2"
+source = "git+https://github.com/a-givertzman/rust-nested-value.git?tag=0.0.3#5ec78b40b1f59b8b4499867958f32c1dd06a59f5"
+dependencies = [
+ "api-tools",
+ "chrono",
+ "indexmap",
+]
+
+[[package]]
 name = "num-integer"
 version = "0.1.45"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1149,6 +1159,7 @@ dependencies = [
  "chrono",
  "circular-queue",
  "csv",
+ "debugging",
  "defmt-rtt",
  "env_logger",
  "event-listener",
@@ -1156,11 +1167,13 @@ dependencies = [
  "indexmap",
  "log",
  "multiqueue",
+ "nested-value",
  "proc-macro2",
  "rand 0.8.5",
  "regex",
  "serde",
  "serde_json",
+ "testing 0.1.1",
  "tokio",
  "tokio-macros",
  "tokio-stream",
@@ -1270,6 +1283,16 @@ dependencies = [
 name = "testing"
 version = "0.0.2"
 source = "git+https://github.com/a-givertzman/rust-testing.git?tag=0.0.2#b810ec56855f8793167255a26fe3d89450ca3039"
+dependencies = [
+ "env_logger",
+ "log",
+ "rand 0.8.5",
+]
+
+[[package]]
+name = "testing"
+version = "0.1.1"
+source = "git+https://github.com/a-givertzman/rust-testing.git?tag=0.1.1#9898640bc38d6020c17c2f7f9b47a75f575c0797"
 dependencies = [
  "env_logger",
  "log",

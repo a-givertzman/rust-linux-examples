@@ -11,26 +11,18 @@
 //! ```
 //!     cargo run --bin nested_value --release -- --nocapture
 //! ```
-#[path = "../debug_session/mod.rs"]
-mod debug_session;
-mod const_value;
-mod nested_value;
-mod multi_value;
-mod fetch_value;
-mod mut_value;
 mod value;
 mod parse_example;
 
 use std::time::Instant;
 use api_tools::client::{api_query::{ApiQuery, ApiQueryKind, ApiQuerySql}, api_request::ApiRequest};
-use debug_session::debug_session::{DebugSession, LogLevel};
-use fetch_value::FetchValue;
+use debugging::session::debug_session::{Backtrace, DebugSession, LogLevel};
+use nested_value::{fetch_value::FetchValue, nested_value::NestedValue};
 use parse_example::{parse_array, parse_map, parse_value};
-use crate::nested_value::NestedValue;
 /// 
 /// Test simple fetched values
 fn main() {
-    DebugSession::init(LogLevel::Debug);
+    DebugSession::init(LogLevel::Debug, Backtrace::Short);
     let time = Instant::now();
     for _ in 0..1 {
         request_value();

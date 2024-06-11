@@ -6,95 +6,50 @@
 //! - MultiValue - contains map of nested values
 //! - FetchValue - contains cached data fetched using ApiRequest
 //! 
-//! **For example constants:**
+//! **For example constants & mutable value:**
 //! 
-//! ```
-//! let value = MultiValue::new([
-//!     ("bool", Box::new(ConstValue::new(Value::Bool(true)))),
-//!     ("u64", Box::new(ConstValue::new(Value::U64(1234567890)))),
-//!     ("f64", Box::new(ConstValue::new(Value::F64(12345.6789012345)))),
-//! ]);
-//! ```
-//! 
-//! **Example with sollections:**
-//! 
-//! ```
-//! let value = MultiValue::new([
-//!     ("collections", Box::new(MultiValue::new([
-//!         ("vec", Box::new(ConstValue::new(Value::Vec(vec![
-//!             Value::U64(222),
-//!             Value::I64(-222),
-//!             Value::F64(222.222222),
-//!         ])))),
-//!         ("map", Box::new(ConstValue::new(Value::Map(IndexMap::from([
-//!             (Value::from("222"), Value::U64(222)),
-//!             (Value::from("-222"), Value::I64(-222)),
-//!             (Value::from("222.222"), Value::F64(222.222222)),
-//!         ]))))),
-//!         ("fetch-222", Box::new(FetchValue::new(
-//!             ApiRequest::new(&u32::to_be_bytes(222)),
-//!             Box::new(|input| {
-//!                 match input.try_into() {
-//!                     Ok(bytes) => Ok(Value::U64(u32::from_be_bytes(bytes) as u64)),
-//!                     Err(_) => Err(format!("fetch-222 | invalid input: {:?}", input)),
-//!                 }
-//!             }),
-//!         ))),
-//!         ("fetch-222.222", Box::new(FetchValue::new(
-//!             ApiRequest::new(&f64::to_be_bytes(222.222)),
-//!             Box::new(|input| {
-//!                 match input.try_into() {
-//!                     Ok(bytes) => Ok(Value::F64(f64::from_be_bytes(bytes))),
-//!                     Err(_) => Err(format!("fetch-222.222 | invalid input: {:?}", input)),
-//!                 }
-//!             }),
-//!         ))),
+//! ```rust
+//! let mut flags = MultiValue::new([
+//!     ("bool-flags", Box::new(MultiValue::new([
+//!         ("flag-true", Box::new(ConstValue::new(true))),
+//!         ("flag-false", Box::new(MutValue::new(false))),
 //!     ]))),
 //! ]);
+//! let key = "bool-flags/flag-true";
+//! println!("multi value {}: {:?}", key, flags.get(key));
 //! ```
 //! 
 //! **Example with fetched values:**
 //! 
-//! ```
-//! let value = MultiValue::new([
-//!     ("fetched", Box::new(MultiValue::new([
-//!         ("fetch-vec", Box::new(FetchValue::new(
-//!             ApiRequest::new(
-//!                 serde_json::to_string(&vec![123, 456, 789])
-//!                     .unwrap_or_else(|err| panic!("fetch-vec | to json error: {:#?}", err)).as_bytes(),
-//!             ),
-//!             Box::new(|reply| {
-//!                 match serde_json::from_slice(reply) {
-//!                     Ok(reply) => {
-//!                         let reply: Vec<u64> = reply;
-//!                         // Ok(reply)
-//!                         Ok(Value::Vec(reply.into_iter().map(|v| Value::U64(v)).collect()))
+//! ```rust
+//! pub fn parse_value(reply: &[u8]) -> Result<serde_json::Value, String> {
+//!     match serde_json::from_slice(reply) {
+//!         Ok(reply) => {
+//!             let reply: ApiReply = reply;
+//!             match reply.data.first() {
+//!                 Some(row) => {
+//!                     match row.values().next() {
+//!                         Some(value) => Ok(value.to_owned()),
+//!                         None => Err(format!("request_value | value not present in the reply: {:?}", reply)),
 //!                     }
-//!                     Err(err) => Err(format!("fetch-vec | from json error: {:#?}", err)),
 //!                 }
-//!             }),
-//!         ))),
-//!         ("fetch-map", Box::new(FetchValue::new(
-//!             ApiRequest::new(
-//!                 r#"{
-//!                     "key1": 111.111,
-//!                     "key2": 222.222,
-//!                     "key3": 333.333
-//!                 }"#.as_bytes(),
-//!             ),
-//!             Box::new(|reply| {
-//!                 match serde_json::from_slice(reply) {
-//!                     Ok(reply) => {
-//!                         let reply: IndexMap<&str, f64> = reply;
-//!                         // Ok(reply)
-//!                         Ok(Value::Map(reply.into_iter().map(|(key, value)| (Value::from(key), Value::from(value))).collect()))
-//!                     }
-//!                     Err(err) => Err(format!("fetch-vec | from json error: {:#?}", err)),
-//!                 }
-//!             }),
-//!         ))),
-//!     ]))),
-//! ]);
+//!                 None => Err(format!("request_value | value not present in the reply: {:?}", reply)),
+//!             }
+//!         },
+//!         Err(err) => Err(format!("parse array error: {:?}", err)),
+//!     }
+//! }
+//! let mut value = FetchValue::new(
+//!     ApiRequest::new(
+//!         self_id, address, auth_token,
+//!         ApiQuery::new(ApiQueryKind::Sql(ApiQuerySql::new(database, "select 222;")), false),
+//!         false, false,
+//!     ),
+//!     Box::new(|reply| {
+//!         parse_value(reply)
+//!     }),
+//! ),
+//! println!("multi value {}: {:?}", key, value.get(""));
 //! ```
 //! 
 //! **Try example using command:**
@@ -102,34 +57,21 @@
 //! ```
 //!     cargo run --bin nested_value --release -- --nocapture
 //! ```
-#[path = "../debug_session/mod.rs"]
-mod debug_session;
-mod const_value;
-mod nested_value;
-mod multi_value;
-mod fetch_value;
-mod mut_value;
 mod value;
 mod parse_example;
 
 use std::time::Instant;
 use api_tools::client::{api_query::{ApiQuery, ApiQueryKind, ApiQuerySql}, api_request::ApiRequest};
-use debug_session::debug_session::{DebugSession, LogLevel};
-use fetch_value::FetchValue;
+use debugging::session::debug_session::{Backtrace, DebugSession, LogLevel};
 use indexmap::IndexMap;
 use log::error;
-use multi_value::MultiValue;
-use mut_value::MutValue;
+use nested_value::{const_value::ConstValue, fetch_value::FetchValue, multi_value::MultiValue, mut_value::MutValue, nested_value::NestedValue};
 use parse_example::{parse_array, parse_map, parse_value};
 use value::Value;
-use crate::{
-    const_value::ConstValue,
-    nested_value::NestedValue,
-};
 //
 //
 fn main() {
-    DebugSession::init(LogLevel::Debug);
+    DebugSession::init(LogLevel::Debug, Backtrace::Short);
     let self_id = "main";
     let value = ConstValue::new(Value::Null);
     println!("const value: {:#?}", value);
