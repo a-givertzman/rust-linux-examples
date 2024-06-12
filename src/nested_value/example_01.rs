@@ -17,7 +17,7 @@ mod parse_example;
 use std::time::Instant;
 use api_tools::client::{api_query::{ApiQuery, ApiQueryKind, ApiQuerySql}, api_request::ApiRequest};
 use debugging::session::debug_session::{Backtrace, DebugSession, LogLevel};
-use nested_value::{fetch_value::FetchValue, nested_value::NestedValue};
+use nested_value::fetch_value::FetchValue;
 use parse_example::{parse_array, parse_map, parse_value};
 /// 
 /// Test simple fetched values
@@ -51,7 +51,7 @@ fn request_value() {
         }),
     );
     let time = Instant::now();
-    match value.get("") {
+    match value.get() {
         Ok(value) => {
             println!("reply: {:#?}", value);
         },
@@ -83,7 +83,7 @@ fn request_array() {
         }),
     );
     let time = Instant::now();
-    match value.get("") {
+    match value.get() {
         Ok(value) => {
             println!("reply: {:#?}", value);
         },
@@ -115,7 +115,7 @@ fn request_map() {
         }),
     );
     let time = Instant::now();
-    match value.get("") {
+    match value.get() {
         Ok(value) => {
             println!("reply: {:#?}", value);
         },

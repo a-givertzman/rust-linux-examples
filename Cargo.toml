@@ -36,7 +36,8 @@ indexmap = "^2.2"
 testing = { git = "https://github.com/a-givertzman/rust-testing.git", tag = "0.1.1" }
 debugging = { git = "https://github.com/a-givertzman/rust-debuging.git", tag = "0.0.1" }
 
-nested-value = { git = "https://github.com/a-givertzman/rust-nested-value.git", tag = "0.0.3" }
+# nested-value = { git = "https://github.com/a-givertzman/rust-nested-value.git", tag = "0.0.3" }
+nested-value = { git = "https://github.com/a-givertzman/rust-nested-value.git" }
 
 api-tools = { git = "https://github.com/a-givertzman/rust-api-tools.git", tag = "0.1.1" }
 

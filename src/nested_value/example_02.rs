@@ -75,15 +75,15 @@ fn main() {
     let self_id = "main";
     let value = ConstValue::new(Value::Null);
     println!("const value: {:#?}", value);
-    println!("const value: {:?}", value.get(""));
+    println!("const value: {:?}", value.get());
     println!();
     let value = ConstValue::new(12345.6789012345);
     println!("const value: {:#?}", value);
-    println!("const value: {:?}", value.get(""));
+    println!("const value: {:?}", value.get());
     println!();
     let value = ConstValue::new(12345);
     println!("const value: {:#?}", value);
-    println!("const value: {:?}", value.get(""));
+    println!("const value: {:?}", value.get());
     println!();
 
     let mut flags = MultiValue::new([
