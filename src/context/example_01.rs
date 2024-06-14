@@ -3,23 +3,34 @@ use api_tools::{api::reply::api_reply::ApiReply, client::{api_query::{ApiQuery, 
 use calc_eval::CalcEval;
 use indexmap::IndexMap;
 use nested_value::{const_value::ConstValue, fetch_value::FetchValue, mut_value::MutValue};
-use calc_context::{CalcContext, CalcResults, CalcSrc};
+use calc_context::{CalcContext, CalcResults, CalcSrc, Results};
+use set_context::SetContext;
 mod calc_eval;
 mod calc_context;
+mod set_context;
 ///
 /// 
 fn main() {
     let self_id = "main";
     let calc_context = prepare_task1_context(self_id);
-    // calc_context.borrow_mut()
     let mut calc = DisplayCalcResults::new(
         "Results after calc",
-        Box::new(Calc::new(
-            Box::new(DisplayCalcResults::new(
-                "Results before calc",
-                Box::new(DisplayCalcSrc::new(
-                    "~~~~~~~~~~   Src   ~~~~~~~~~~",
-                    Box::new(Start::new())
+        Box::new(SetContext::new(
+            Box::new(|context, result| {
+                context.borrow_mut().results = result;
+            }),
+            Box::new(Calc::new(
+                Box::new(DisplayCalcResults::new(
+                    "Results before calc",
+                    Box::new(SetContext::new(
+                        Box::new(|context, result| {
+                            // context.borrow_mut().results.
+                        }),
+                        Box::new(DisplayCalcSrc::new(
+                            "~~~~~~~~~~   Src   ~~~~~~~~~~",
+                            Box::new(Start::new())
+                        )),
+                    ))
                 )),
             )),
         )),
@@ -36,7 +47,7 @@ struct DisplayCalcSrc<T> {
 }
 //
 //
-impl<T: Clone + ?Sized> DisplayCalcSrc<T> {
+impl<T> DisplayCalcSrc<T> {
     fn new(
         label: impl Into<String>,
         exp: Box<dyn CalcEval<T>>,
@@ -62,7 +73,7 @@ impl<T: Clone + ?Sized> DisplayCalcSrc<T> {
 }
 //
 //
-impl<T: Clone + ?Sized> CalcEval<T> for DisplayCalcSrc<T> {
+impl<T> CalcEval<T> for DisplayCalcSrc<T> {
     fn eval(&mut self, context: Rc<RefCell<CalcContext>>) -> T {
         DisplayCalcSrc::eval(self, context)
     }
@@ -72,75 +83,76 @@ impl<T: Clone + ?Sized> CalcEval<T> for DisplayCalcSrc<T> {
 struct DisplayCalcResults<T> {
     id: String,
     label: String,
-    context: Box<dyn CalcEval<T>>,
+    exp: Box<dyn CalcEval<T>>,
 }
 //
 //
-impl<T: Clone + ?Sized> DisplayCalcResults<T> {
+impl<T> DisplayCalcResults<T> {
     fn new(
         label: impl Into<String>,
-        context: Box<dyn CalcEval<T>>,
+        exp: Box<dyn CalcEval<T>>,
     ) -> Self {
         Self {
             id: format!("DisplayCalcResults"),
             label: label.into(),
-            context,
+            exp,
         }
     }
     ///
     /// 
     pub fn eval(&mut self, context: Rc<RefCell<CalcContext>>) -> T {
-        let context_ref = self.context.eval(context.clone());
+        let context_ref = self.exp.eval(context.clone());
         let context = context.borrow();
         println!("\n{}", self.label);
-        println!("{}.eval results/field1: {}", self.id, context.results.field1.get());
-        println!("{}.eval results/field2: {:#?}", self.id, context.results.field2.get());
-        println!("{}.eval results/field3: {}", self.id, context.results.field3.get());
+        println!("{}.eval results/field1: {}", self.id, context.results.calc.field1.get());
+        println!("{}.eval results/field2: {:#?}", self.id, context.results.calc.field2.get());
+        println!("{}.eval results/field3: {}", self.id, context.results.calc.field3.get());
         context_ref
     }
 }
 //
 //
-impl<T: Clone + ?Sized> CalcEval<T> for DisplayCalcResults<T> {
+impl<T> CalcEval<T> for DisplayCalcResults<T> {
     fn eval(&mut self, context: Rc<RefCell<CalcContext>>) -> T {
         DisplayCalcResults::eval(self, context)
     }
 }
 ///
 /// Calculations
-struct Calc<T> {
+struct Calc<CalcResults> {
     id: String,
-    context: Box<dyn CalcEval<T>>,
+    exp: Box<dyn CalcEval<CalcResults>>,
 }
 //
 //
-impl<T: Clone + ?Sized> Calc<T> {
+impl<T> Calc<T> {
     fn new(
-        context: Box<dyn CalcEval<T>>,
+        exp: Box<dyn CalcEval<T>>,
     ) -> Self {
         Self {
             id: format!("Calc"),
-            context,
+            exp,
         }
     }
     ///
     /// 
-    pub fn eval(&mut self, context: Rc<RefCell<CalcContext>>) -> T {
-        let context_ref = self.context.eval(context.clone());
-        let mut context = context.borrow_mut();
+    pub fn eval(&mut self, context: Rc<RefCell<CalcContext>>) -> CalcResults {
+        let _ = self.exp.eval(context.clone());
+        let context = context.borrow_mut();
         let field1 = context.src.field1.get();
         let field2 = context.src.field2.get().unwrap();
         let field3 = context.src.field3.get();
-        context.results.field1.store(&self.id, field1 * 2.0).unwrap();
-        context.results.field2.store(&self.id, field2.iter().map(|(_key, value)| value * 2.0).collect()).unwrap();
-        context.results.field3.store(&self.id, field3 * 2.0).unwrap();
-        context_ref
+        CalcResults::new(
+            MutValue::new(field1 * 2.0),
+            MutValue::new(field2.iter().map(|(_key, value)| value * 2.0).collect()),
+            MutValue::new(field3 * 2.0),
+        )
     }
 }
 //
 //
-impl<T: Clone + ?Sized> CalcEval<T> for Calc<T> {
-    fn eval(&mut self, context: Rc<RefCell<CalcContext>>) -> T {
+impl CalcEval<CalcResults> for Calc<CalcResults> {
+    fn eval(&mut self, context: Rc<RefCell<CalcContext>>) -> CalcResults {
         Calc::eval(self, context)
     }
 }
@@ -174,11 +186,13 @@ fn prepare_task1_context(parent: &str) -> Rc<RefCell<CalcContext>> {
             ),
             ConstValue::new(12.32),
         ),
-        CalcResults::new(
-            MutValue::new(0.0),
-            MutValue::new(vec![]),
-            MutValue::new(0.0),
-        ),
+        Results::new(
+            CalcResults::new(
+                MutValue::new(0.0),
+                MutValue::new(vec![]),
+                MutValue::new(0.0),
+            ),
+        ) 
     )))
 }
 ///

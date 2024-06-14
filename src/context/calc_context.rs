@@ -4,12 +4,12 @@ use nested_value::{const_value::ConstValue, fetch_value::FetchValue, mut_value::
 /// 
 pub struct CalcContext {
     pub src: CalcSrc,
-    pub results: CalcResults,
+    pub results: Results,
 }
 //
 //
 impl CalcContext {
-    pub fn new(src: CalcSrc, results: CalcResults) -> Self {
+    pub fn new(src: CalcSrc, results: Results) -> Self {
         Self { src, results }
     }
 }
@@ -44,6 +44,24 @@ impl CalcSrc {
 }
 ///
 /// 
+#[derive(Clone)]
+pub struct Results {
+    pub calc: CalcResults,
+}
+//
+//
+impl Results {
+    pub fn new(
+        calc: CalcResults,
+        ) -> Self {
+        Self {
+            calc,
+        }
+    }
+}
+///
+/// 
+#[derive(Clone)]
 pub struct CalcResults {
     pub field1: MutValue<f64>,
     pub field2: MutValue<Vec<f64>>,
