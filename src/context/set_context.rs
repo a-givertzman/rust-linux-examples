@@ -2,24 +2,24 @@ use std::{cell::RefCell, rc::Rc};
 use crate::{calc_context::CalcContext, calc_eval::CalcEval};
 ///
 /// 
-pub struct SetContext<T> {
-    set: Box<dyn Fn(Rc<RefCell<CalcContext>>, T)>,
-    exp: Box<dyn CalcEval<T>>,
+pub struct SetContext<I, O> {
+    set: Box<dyn Fn(Rc<RefCell<CalcContext>>, O)>,
+    exp: Box<dyn CalcEval<I, O>>,
 }
 //
 //
-impl<T> SetContext<T> {
+impl<I, O> SetContext<I, O> {
     pub fn new(
-        set: Box<dyn Fn(Rc<RefCell<CalcContext>>, T)>,
-        exp: Box<dyn CalcEval<T>>,
+        set: Box<dyn Fn(Rc<RefCell<CalcContext>>, O)>,
+        exp: Box<dyn CalcEval<I, O>>,
     ) -> Self {
         Self { set, exp}
     }
 }
 //
 //
-impl<T: Clone> CalcEval<T> for SetContext<T> {
-    fn eval(&mut self, context: Rc<RefCell<CalcContext>>) -> T {
+impl<I, O: Clone> CalcEval<I, O> for SetContext<I, O> {
+    fn eval(&mut self, context: Rc<RefCell<CalcContext>>) -> O {
         let result = self.exp.eval(context.clone());
         (self.set)(context, result.clone());
         result

@@ -46,30 +46,56 @@ impl CalcSrc {
 /// 
 #[derive(Clone)]
 pub struct Results {
-    pub calc: CalcResults,
+    pub mul2: Mul2Results,
+    pub add_field1: AddField1Results,
 }
 //
 //
 impl Results {
     pub fn new(
-        calc: CalcResults,
+        mul2: Mul2Results,
+        add_field1: AddField1Results,
         ) -> Self {
         Self {
-            calc,
+            mul2,
+            add_field1,
         }
     }
 }
 ///
 /// 
 #[derive(Clone)]
-pub struct CalcResults {
+pub struct Mul2Results {
     pub field1: MutValue<f64>,
     pub field2: MutValue<Vec<f64>>,
     pub field3: MutValue<f64>,
 }
 //
 //
-impl CalcResults {
+impl Mul2Results {
+    pub fn new(
+        field1: MutValue<f64>,
+        field2: MutValue<Vec<f64>>,
+        field3: MutValue<f64>,
+        ) -> Self {
+        Self {
+            field1,
+            field2,
+            field3,
+        }
+    }
+}
+///
+/// 
+#[derive(Clone)]
+pub struct AddField1Results {
+    pub field1: MutValue<f64>,
+    pub field2: MutValue<Vec<f64>>,
+    pub field3: MutValue<f64>,
+}
+//
+//
+impl AddField1Results {
     pub fn new(
         field1: MutValue<f64>,
         field2: MutValue<Vec<f64>>,

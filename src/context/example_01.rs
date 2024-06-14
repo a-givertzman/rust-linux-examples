@@ -1,160 +1,55 @@
 use std::{cell::RefCell, rc::Rc};
+use add_field1::AddField1;
 use api_tools::{api::reply::api_reply::ApiReply, client::{api_query::{ApiQuery, ApiQueryKind, ApiQuerySql}, api_request::ApiRequest}};
 use calc_eval::CalcEval;
+use display_results::DisplayCalcResults;
+use display_src::DisplaySrc;
 use indexmap::IndexMap;
+use mul2::Mul2;
 use nested_value::{const_value::ConstValue, fetch_value::FetchValue, mut_value::MutValue};
-use calc_context::{CalcContext, CalcResults, CalcSrc, Results};
+use calc_context::{AddField1Results, CalcContext, CalcSrc, Mul2Results, Results};
 use set_context::SetContext;
 mod calc_eval;
 mod calc_context;
 mod set_context;
+mod mul2;
+mod add_field1;
+mod display_src;
+mod display_results;
 ///
 /// 
 fn main() {
     let self_id = "main";
     let calc_context = prepare_task1_context(self_id);
     let mut calc = DisplayCalcResults::new(
-        "Results after calc",
+        "~~~~~~~~~~   Results after AddField1",
         Box::new(SetContext::new(
             Box::new(|context, result| {
-                context.borrow_mut().results = result;
+                context.borrow_mut().results.add_field1 = result;
             }),
-            Box::new(Calc::new(
+            Box::new(AddField1::new(
                 Box::new(DisplayCalcResults::new(
-                    "Results before calc",
+                    "~~~~~~~~~~   Results after Mul2",
                     Box::new(SetContext::new(
                         Box::new(|context, result| {
-                            // context.borrow_mut().results.
+                            context.borrow_mut().results.mul2 = result;
                         }),
-                        Box::new(DisplayCalcSrc::new(
-                            "~~~~~~~~~~   Src   ~~~~~~~~~~",
-                            Box::new(Start::new())
+                        Box::new(Mul2::new(
+                            Box::new(DisplayCalcResults::new(
+                                "~~~~~~~~~~   Results before calc",
+                                Box::new(DisplaySrc::new(
+                                    "~~~~~~~~~~   Src   ~~~~~~~~~~",
+                                    Box::new(Start::new())
+                                )),
+                            )),
                         )),
-                    ))
+                    )),
                 )),
             )),
         )),
     );
     let calc_context = calc.eval(calc_context);
     _ = calc_context;
-}
-///
-/// 
-struct DisplayCalcSrc<T> {
-    id: String,
-    label: String,
-    exp: Box<dyn CalcEval<T>>,
-}
-//
-//
-impl<T> DisplayCalcSrc<T> {
-    fn new(
-        label: impl Into<String>,
-        exp: Box<dyn CalcEval<T>>,
-    ) -> Self {
-        Self {
-            id: format!("DisplayCalcSrc"),
-            label: label.into(),
-            exp,
-        }
-    }
-    ///
-    /// 
-    pub fn eval(&mut self, context: Rc<RefCell<CalcContext>>) -> T {
-        let context_ref = self.exp.eval(context.clone());
-        // let context = context_ref.clone();
-        let context = context.borrow_mut();
-        println!("\n{}", self.label);
-        println!("{}.eval src/field1: {}", self.id, context.src.field1.get());
-        println!("{}.eval src/field2: {:#?}", self.id, context.src.field2.get());
-        println!("{}.eval src/field3: {}", self.id, context.src.field3.get());
-        context_ref
-    }
-}
-//
-//
-impl<T> CalcEval<T> for DisplayCalcSrc<T> {
-    fn eval(&mut self, context: Rc<RefCell<CalcContext>>) -> T {
-        DisplayCalcSrc::eval(self, context)
-    }
-}
-///
-/// 
-struct DisplayCalcResults<T> {
-    id: String,
-    label: String,
-    exp: Box<dyn CalcEval<T>>,
-}
-//
-//
-impl<T> DisplayCalcResults<T> {
-    fn new(
-        label: impl Into<String>,
-        exp: Box<dyn CalcEval<T>>,
-    ) -> Self {
-        Self {
-            id: format!("DisplayCalcResults"),
-            label: label.into(),
-            exp,
-        }
-    }
-    ///
-    /// 
-    pub fn eval(&mut self, context: Rc<RefCell<CalcContext>>) -> T {
-        let context_ref = self.exp.eval(context.clone());
-        let context = context.borrow();
-        println!("\n{}", self.label);
-        println!("{}.eval results/field1: {}", self.id, context.results.calc.field1.get());
-        println!("{}.eval results/field2: {:#?}", self.id, context.results.calc.field2.get());
-        println!("{}.eval results/field3: {}", self.id, context.results.calc.field3.get());
-        context_ref
-    }
-}
-//
-//
-impl<T> CalcEval<T> for DisplayCalcResults<T> {
-    fn eval(&mut self, context: Rc<RefCell<CalcContext>>) -> T {
-        DisplayCalcResults::eval(self, context)
-    }
-}
-///
-/// Calculations
-struct Calc<CalcResults> {
-    id: String,
-    exp: Box<dyn CalcEval<CalcResults>>,
-}
-//
-//
-impl<T> Calc<T> {
-    fn new(
-        exp: Box<dyn CalcEval<T>>,
-    ) -> Self {
-        Self {
-            id: format!("Calc"),
-            exp,
-        }
-    }
-    ///
-    /// 
-    pub fn eval(&mut self, context: Rc<RefCell<CalcContext>>) -> CalcResults {
-        let _ = self.exp.eval(context.clone());
-        let context = context.borrow_mut();
-        let field1 = context.src.field1.get();
-        let field2 = context.src.field2.get().unwrap();
-        let field3 = context.src.field3.get();
-        CalcResults::new(
-            MutValue::new(field1 * 2.0),
-            MutValue::new(field2.iter().map(|(_key, value)| value * 2.0).collect()),
-            MutValue::new(field3 * 2.0),
-        )
-    }
-}
-//
-//
-impl CalcEval<CalcResults> for Calc<CalcResults> {
-    fn eval(&mut self, context: Rc<RefCell<CalcContext>>) -> CalcResults {
-        Calc::eval(self, context)
-    }
 }
 ///
 /// The constructor of the Task1 context
@@ -187,7 +82,12 @@ fn prepare_task1_context(parent: &str) -> Rc<RefCell<CalcContext>> {
             ConstValue::new(12.32),
         ),
         Results::new(
-            CalcResults::new(
+            Mul2Results::new(
+                MutValue::new(0.0),
+                MutValue::new(vec![]),
+                MutValue::new(0.0),
+            ),
+            AddField1Results::new(
                 MutValue::new(0.0),
                 MutValue::new(vec![]),
                 MutValue::new(0.0),
@@ -232,7 +132,7 @@ impl Start {
 }
 //
 //
-impl CalcEval<Rc<RefCell<CalcContext>>> for Start {
+impl CalcEval<Rc<RefCell<CalcContext>>, Rc<RefCell<CalcContext>>> for Start {
     fn eval(&mut self, context: Rc<RefCell<CalcContext>>) -> Rc<RefCell<CalcContext>> {
         Start::eval(self, context)
     }
