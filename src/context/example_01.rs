@@ -7,10 +7,21 @@ mod task1_context;
 
 fn main() {
     let self_id = "main";
+    let mut task1_context = prepare_task1_context(self_id);
+    println!("task1 field1: {}", task1_context.src.const_f64_field1.get());
+    println!("task1 field2: {:#?}", task1_context.src.const_map_field2.get());
+    println!("task1 field3: {}", task1_context.src.mut_f64_field3.get());
+    task1_context.src.mut_f64_field3.store(&self_id, 24.16).unwrap();
+    println!("task1 field3: {}", task1_context.src.mut_f64_field3.get());
+}
+///
+/// The constructor of the Task1 context
+fn prepare_task1_context(parent: &str) -> Task1Context {
+    let self_id = parent.to_owned() + "prepare_task1_context";
     let address = "127.0.0.1:8080";
     let auth_token = "";
     let database = "nested_value";
-    let context = Task1Context::new(
+    Task1Context::new(
         Task1Src::new(
             ConstValue::new(0.64),
             FetchValue::<IndexMap<String, f64>>::new(
@@ -38,9 +49,8 @@ fn main() {
             MutValue::new(vec![]),
             MutValue::new(0.0),
         ),
-    );
+    )
 }
-
 ///
 /// Extract array from the ApiReply
 pub fn parse_map(reply: &[u8]) -> Result<IndexMap::<String, f64>, String> {
