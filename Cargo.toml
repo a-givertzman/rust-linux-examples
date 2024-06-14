@@ -175,3 +175,7 @@ path = "src/nested_value/example_02.rs"
 [[bin]]
 name = "future"
 path = "src/future/example_01.rs"
+
+[[bin]]
+name = "context"
+path = "src/context/example_01.rs"
