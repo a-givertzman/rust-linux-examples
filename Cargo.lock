@@ -677,7 +677,7 @@ dependencies = [
 [[package]]
 name = "nested-value"
 version = "0.0.4"
-source = "git+https://github.com/a-givertzman/rust-nested-value.git#c45218eaee0b74fa67a4636cf04a9bad09aac635"
+source = "git+https://github.com/a-givertzman/rust-nested-value.git?tag=0.0.5#fea2edbf29ce949db5027069d3ddd8cd1e844340"
 dependencies = [
  "api-tools",
  "chrono",
