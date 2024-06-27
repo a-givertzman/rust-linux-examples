@@ -12,12 +12,12 @@ pub struct DisplayCalcResults<I, O> {
 impl<I, O> DisplayCalcResults<I, O> {
     pub fn new(
         label: impl Into<String>,
-        exp: Box<dyn CalcEval<I, O>>,
+        exp: impl CalcEval<I, O> + 'static,
     ) -> Self {
         Self {
             id: format!("DisplayCalcResults"),
             label: label.into(),
-            exp,
+            exp: Box::new(exp),
         }
     }
     ///

@@ -11,11 +11,11 @@ pub struct Mul2<T, X> {
 //
 impl<T, X> Mul2<T, X> {
     pub fn new(
-        exp: Box<dyn CalcEval<X, T>>,
+        exp: impl CalcEval<X, T> + 'static,
     ) -> Self {
         Self {
             id: format!("Mul2"),
-            exp,
+            exp: Box::new(exp),
         }
     }
     ///

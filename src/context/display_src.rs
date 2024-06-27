@@ -14,12 +14,12 @@ pub struct DisplaySrc<T> {
 impl<T> DisplaySrc<T> {
     pub fn new(
         label: impl Into<String>,
-        exp: Box<dyn CalcEval<T, T>>,
+        exp: impl CalcEval<T, T> + 'static,
     ) -> Self {
         Self {
             id: format!("DisplaySrc"),
             label: label.into(),
-            exp,
+            exp: Box::new(exp),
         }
     }
     ///

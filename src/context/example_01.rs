@@ -23,30 +23,31 @@ fn main() {
     let calc_context = prepare_task1_context(self_id);
     let mut calc = DisplayCalcResults::new(
         "~~~~~~~~~~   Results after AddField1",
-        Box::new(SetContext::new(
-            Box::new(|context, result| {
+        SetContext::new(
+            |context, result| {
                 context.borrow_mut().results.add_field1 = result;
-            }),
-            Box::new(AddField1::new(
-                Box::new(DisplayCalcResults::new(
+            },
+            AddField1::new(
+                DisplayCalcResults::new(
                     "~~~~~~~~~~   Results after Mul2",
-                    Box::new(SetContext::new(
-                        Box::new(|context, result| {
+                    SetContext::new(
+                        |context, result| {
+                            let context: Rc<RefCell<CalcContext>> = context;
                             context.borrow_mut().results.mul2 = result;
-                        }),
-                        Box::new(Mul2::new(
-                            Box::new(DisplayCalcResults::new(
+                        },
+                        Mul2::new(
+                            DisplayCalcResults::new(
                                 "~~~~~~~~~~   Results before calc",
-                                Box::new(DisplaySrc::new(
+                                DisplaySrc::new(
                                     "~~~~~~~~~~   Src   ~~~~~~~~~~",
-                                    Box::new(Start::new())
-                                )),
-                            )),
-                        )),
-                    )),
-                )),
-            )),
-        )),
+                                    Start::new()
+                                )
+                            ),
+                        ),
+                    ),
+                ),
+            )
+        ),
     );
     let calc_context = calc.eval(calc_context);
     _ = calc_context;
@@ -116,7 +117,7 @@ pub fn parse_map(reply: &[u8]) -> Result<IndexMap::<String, f64>, String> {
 
 
 ///
-/// Start calculations
+/// Start calculations, just returns the context as it
 struct Start {}
 //
 //
@@ -125,8 +126,8 @@ impl Start {
         Self {}
     }
     ///
-    /// 
-    pub fn eval(&mut self, context: Rc<RefCell<CalcContext>>) -> Rc<RefCell<CalcContext>> {
+    /// Retirns the context as it
+    pub fn eval<T>(&mut self, context: T) -> T {
         context
     }
 }
