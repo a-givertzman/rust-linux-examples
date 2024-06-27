@@ -2,7 +2,7 @@ use std::{cell::RefCell, rc::Rc};
 use add_field1::AddField1;
 use api_tools::{api::reply::api_reply::ApiReply, client::{api_query::{ApiQuery, ApiQueryKind, ApiQuerySql}, api_request::ApiRequest}};
 use calc_eval::CalcEval;
-use display_results::DisplayCalcResults;
+use display_results::DisplayState;
 use display_src::DisplaySrc;
 use indexmap::IndexMap;
 use mul2::Mul2;
@@ -21,23 +21,32 @@ mod display_results;
 fn main() {
     let self_id = "main";
     let calc_context = prepare_task1_context(self_id);
-    let mut calc = DisplayCalcResults::new(
+    let mut calc = DisplayState::new(
         "~~~~~~~~~~   Results after AddField1",
+        |context| {
+            Box::new(context.borrow().results.clone())
+        },
         SetContext::new(
             |context, result| {
                 context.borrow_mut().results.add_field1 = result;
             },
             AddField1::new(
-                DisplayCalcResults::new(
+                DisplayState::new(
                     "~~~~~~~~~~   Results after Mul2",
+                    |context| {
+                        Box::new(context.borrow().results.clone())
+                    },
                     SetContext::new(
                         |context, result| {
                             let context: Rc<RefCell<CalcContext>> = context;
                             context.borrow_mut().results.mul2 = result;
                         },
                         Mul2::new(
-                            DisplayCalcResults::new(
+                            DisplayState::new(
                                 "~~~~~~~~~~   Results before calc",
+                                |context| {
+                                    Box::new(context.borrow().results.clone())
+                                },
                                 DisplaySrc::new(
                                     "~~~~~~~~~~   Src   ~~~~~~~~~~",
                                     Start::new()

@@ -14,13 +14,6 @@ impl CalcContext {
         Self { src, results }
     }
 }
-//
-//
-// impl CalcEval for Rc<RefCell<CalcContext>> {
-//     fn eval(&mut self) -> Rc<RefCell<CalcContext>> {
-//         self.clone()
-//     }
-// }
 ///
 /// 
 #[derive(Debug)]
