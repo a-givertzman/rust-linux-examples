@@ -23,9 +23,7 @@ fn main() {
     let calc_context = prepare_task1_context(self_id);
     let mut calc = DisplayState::new(
         "~~~~~~~~~~   Results after AddField1",
-        |context| {
-            Box::new(context.borrow().results.clone())
-        },
+        |context| Box::new(context.borrow().results.clone()),
         SetContext::new(
             |context, result| {
                 context.borrow_mut().results.add_field1 = result;
@@ -33,9 +31,7 @@ fn main() {
             AddField1::new(
                 DisplayState::new(
                     "~~~~~~~~~~   Results after Mul2",
-                    |context| {
-                        Box::new(context.borrow().results.clone())
-                    },
+                    |context| Box::new(context.borrow().results.clone()),
                     SetContext::new(
                         |context, result| {
                             let context: Rc<RefCell<CalcContext>> = context;
@@ -44,9 +40,7 @@ fn main() {
                         Mul2::new(
                             DisplayState::new(
                                 "~~~~~~~~~~   Results before calc",
-                                |context| {
-                                    Box::new(context.borrow().results.clone())
-                                },
+                                |context| Box::new(context.borrow().results.clone()),
                                 DisplaySrc::new(
                                     "~~~~~~~~~~   Src   ~~~~~~~~~~",
                                     Start::new()
