@@ -2,6 +2,7 @@ use indexmap::IndexMap;
 use nested_value::{const_value::ConstValue, fetch_value::FetchValue, mut_value::MutValue};
 ///
 /// 
+#[derive(Debug)]
 pub struct CalcContext {
     pub src: CalcSrc,
     pub results: Results,
@@ -22,6 +23,7 @@ impl CalcContext {
 // }
 ///
 /// 
+#[derive(Debug)]
 pub struct CalcSrc {
     pub field1: ConstValue<f64>,
     pub field2: FetchValue<IndexMap<String, f64>>,
@@ -44,7 +46,7 @@ impl CalcSrc {
 }
 ///
 /// 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Results {
     pub mul2: Mul2Results,
     pub add_field1: AddField1Results,
@@ -64,7 +66,7 @@ impl Results {
 }
 ///
 /// 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Mul2Results {
     pub field1: MutValue<f64>,
     pub field2: MutValue<Vec<f64>>,
@@ -87,7 +89,7 @@ impl Mul2Results {
 }
 ///
 /// 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct AddField1Results {
     pub field1: MutValue<f64>,
     pub field2: MutValue<Vec<f64>>,

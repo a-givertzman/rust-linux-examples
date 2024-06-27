@@ -26,9 +26,10 @@ impl<I, O> DisplayCalcResults<I, O> {
         let result = self.exp.eval(context.clone());
         let context = context.borrow();
         println!("\n{}", self.label);
-        println!("{}.eval results/field1: {}", self.id, context.results.mul2.field1.get());
-        println!("{}.eval results/field2: {:#?}", self.id, context.results.mul2.field2.get());
-        println!("{}.eval results/field3: {}", self.id, context.results.mul2.field3.get());
+        println!("{}.eval results: {:#?}", self.id, context.results);
+        // println!("{}.eval results/field1: {}", self.id, context.results.mul2.field1.get());
+        // println!("{}.eval results/field2: {:#?}", self.id, context.results.mul2.field2.get());
+        // println!("{}.eval results/field3: {}", self.id, context.results.mul2.field3.get());
         result
     }
 }
