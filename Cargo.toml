@@ -42,6 +42,8 @@ nested-value = { git = "https://github.com/a-givertzman/rust-nested-value.git", 
 api-tools = { git = "https://github.com/a-givertzman/rust-api-tools.git", tag = "0.1.1" }
 
 
+thread-priority = "^1.1"
+
 
 [[bin]]
 name = "main"

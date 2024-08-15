@@ -1,5 +1,6 @@
 use std::{sync::{atomic::{AtomicBool, AtomicUsize, Ordering}, Arc, RwLock}, thread::{self, JoinHandle}, time::Duration};
 use rand::Rng;
+use thread_priority::{set_current_thread_priority, NormalThreadSchedulePolicy, RealtimeThreadSchedulePolicy, ThreadBuilderExt, ThreadExt, ThreadPriority, ThreadPriorityOsValue, ThreadSchedulePolicy};
 
 use crate::service_cycle::ServiceCycle;
 ///
@@ -40,6 +41,16 @@ impl CyclicService {
         let builder = thread::Builder::new().name("CyclicService | ".to_owned());
         let handle: thread::JoinHandle<_> = builder.spawn(move || {
             log::debug!("{}.run | Start", log_id);
+            let result = thread::current().set_priority_and_policy(
+                // ThreadSchedulePolicy::Normal(NormalThreadSchedulePolicy::Batch),
+                ThreadSchedulePolicy::Realtime(RealtimeThreadSchedulePolicy::Fifo),
+                ThreadPriority::Crossplatform(10.try_into().unwrap()),       // Realtime: 1..99; Normal: -20..+19
+            );
+            log::debug!("{}.run | Set Priority & Policy result: {:?}", log_id, result);
+            let priority = thread::current().get_priority();
+            let policy = thread::current().get_schedule_policy();
+            log::debug!("{}.run | Shedule policy: {:?}", log_id, policy);
+            log::debug!("{}.run | ThreadPriority: {:?}", log_id, priority);
             let mut cycles = 0;
             loop {
                 cycle.start();
