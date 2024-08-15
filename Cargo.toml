@@ -179,3 +179,10 @@ path = "src/future/example_01.rs"
 [[bin]]
 name = "context"
 path = "src/context/example_01.rs"
+
+[[bin]]
+name = "multi_thread"
+path = "src/multi_thread/main.rs"
+[[bin]]
+name = "multi_thread_data"
+path = "src/multi_thread/test_data.rs"
