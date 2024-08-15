@@ -2,6 +2,12 @@
 //! Testing the threads priority 
 //! in case of multiple threads with the different load, 
 //! when there is a thread(s) whis precise execution cycle
+//! 
+//! Prepare test data: 
+//! cargo run --release --bin multi_thread_data
+//! 
+//! Execute:
+//! rm target/release/multi_thread && cargo build --release --bin multi_thread && cp target/release/multi_thread src/multi_thread/ && sudo src/multi_thread/multi_thread
 mod cyclic_service;
 mod hard_load_service;
 mod service_cycle;

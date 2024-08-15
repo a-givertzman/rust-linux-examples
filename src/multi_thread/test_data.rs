@@ -8,7 +8,7 @@ fn main() {
     env_logger::init();
 
     let path = "src/multi_thread/test_data.txt";
-    let count = 1_000;
+    let count = 10_000;
     let template: Vec<String> = ["qwe", "rty", "uiop", "asdf", "ghj", "klz", "xcv", "bnm"].into_iter().map(|item| item.to_owned()).collect();
 
     let mut out = "".to_owned();
