@@ -44,6 +44,9 @@ api-tools = { git = "https://github.com/a-givertzman/rust-api-tools.git", tag = 
 
 thread-priority = "^1.1"
 
+rustfft = "^6.2"
+charming = { version = "^0.3", features = ["ssr"] }
+
 
 [[bin]]
 name = "main"
@@ -188,3 +191,7 @@ path = "src/multi_thread/main.rs"
 [[bin]]
 name = "multi_thread_data"
 path = "src/multi_thread/test_data.rs"
+
+[[bin]]
+name = "fft"
+path = "src/fft/main.rs"
