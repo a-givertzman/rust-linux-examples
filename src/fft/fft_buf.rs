@@ -1,10 +1,13 @@
-use std::{cell::RefCell, f64::consts::PI};
+use std::f64::consts::PI;
 use rustfft::{num_complex::Complex, num_traits::Zero};
 ///
 /// Holds a buffer of samples ready to FFT processing
 pub struct FftBuf {
     fft_size: usize,
     sampl_freq: usize,
+    /// Used for restoring the frequency by it's index withing 0..`fft_size`
+    freq_factor: f64,
+    amp_factor: f64,
     delta_t: f64,
     /// continuous index
     time_i: usize,
@@ -32,10 +35,12 @@ impl FftBuf {
                 im: angle.sin()
             }
         }).collect();
-        log::debug!("FftBuf.new | unit_complex: {:?}", unit_complex);
+        log::trace!("FftBuf.new | unit_complex: {:?}", unit_complex);
         Self {
             fft_size,
             sampl_freq,
+            freq_factor: (sampl_freq as f64) / (fft_size as f64),
+            amp_factor: 2.0 / (fft_size as f64),
             delta_t,
             time_i: 0,
             unit_complex,
@@ -43,6 +48,16 @@ impl FftBuf {
             index_last: fft_size - 1,
             complex: vec![Complex::zero(); fft_size],
         }
+    }
+    ///
+    /// Returns sampling frequency
+    pub fn sampl_freq(&self) -> usize {
+        self.sampl_freq
+    }
+    ///
+    /// Returns factor to restore the amplitude from FFT results
+    pub fn amp_factor(&self) -> f64 {
+        self.amp_factor
     }
     ///
     /// Pushing new value into FFT buffer
@@ -55,7 +70,7 @@ impl FftBuf {
         }
         self.complex[self.index].re = value * self.unit_complex[self.index].re;
         self.complex[self.index].im = value * self.unit_complex[self.index].im;
-        log::debug!("FftBuf.add | index: {}", self.index);
+        log::trace!("FftBuf.add | index: {}", self.index);
         if self.index < self.index_last {
             self.index = (self.index  + 1) % self.fft_size;
             self.time_i += 1;
@@ -70,5 +85,10 @@ impl FftBuf {
     /// Returns current timestamp as f64
     pub fn time(&self) -> f64 {
         (self.time_i as f64) * self.delta_t
+    }
+    ///
+    /// Retirns freq corresponding to freq `index` withing `0..fft_size`
+    pub fn freq_of(&self, index: usize) -> f64 {
+        (index as f64) * self.freq_factor
     }
 }
