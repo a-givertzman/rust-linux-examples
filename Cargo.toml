@@ -47,6 +47,11 @@ thread-priority = "^1.1"
 rustfft = "^6.2"
 charming = { version = "^0.3", features = ["ssr"] }
 
+# hierarchical struct
+nestify = "^0.3"
+transitive_from = "^0.1"
+struct_iterable = "^0.1"
+
 
 [[bin]]
 name = "main"
@@ -195,3 +200,7 @@ path = "src/multi_thread/test_data.rs"
 [[bin]]
 name = "fft"
 path = "src/fft/main.rs"
+
+[[bin]]
+name = "nested_struct"
+path = "src/nested_struct/main.rs"
