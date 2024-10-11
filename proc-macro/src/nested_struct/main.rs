@@ -23,7 +23,8 @@ fn to_snack_case(val: &str) -> String {
 }
 ///
 /// 
-fn just_method() -> String {
+fn just_method(input: &str) -> String {
+    println!("just_method | input: '{}'", input);
     "child".to_owned()
 }
 ///
