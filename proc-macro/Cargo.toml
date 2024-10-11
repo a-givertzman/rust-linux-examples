@@ -1,0 +1,27 @@
+[package]
+name = "proc-macro"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+log = { workspace = true }
+env_logger = { workspace = true }
+
+regex = { workspace = true }
+
+# hierarchical struct
+nestify = "^0.3"
+transitive_from = "^0.1"
+struct_iterable = "^0.1"
+
+nested-struct = { path = "../nested-struct" }
+
+
+[[bin]]
+name = "nested_struct"
+path = "src/nested_struct/main.rs"
+
+
+[[bin]]
+name = "proc_macro"
+path = "src/proc_macro/main.rs"

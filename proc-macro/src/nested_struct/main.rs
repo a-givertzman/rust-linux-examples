@@ -1,8 +1,33 @@
 use std::env;
 use nestify::nest;
+use regex::Regex;
 use struct_iterable::Iterable;
 
 
+fn to_snack_case(val: &str) -> String {
+    let re = Regex::new(r"[A-Z]").unwrap();
+    val.chars().fold(String::new(), |mut acc, char| {
+        let char = char.to_string();
+        let is_caps = re.is_match(&char);
+        if is_caps {
+            if !acc.is_empty() {
+                acc.push_str("_");
+                // acc.push_str(&char.to_ascii_lowercase());
+            }
+            acc.push_str(&char.to_ascii_lowercase());
+        } else {
+            acc.push_str(&char);
+        }
+        acc
+    })
+}
+///
+/// 
+fn just_method() -> String {
+    "child".to_owned()
+}
+///
+///
 macro_rules! nested {
     //
     // input is empty: time to output
@@ -48,6 +73,7 @@ nested!{
         Child {
         }
     }
+    // just_method,
 }
 
 
@@ -59,12 +85,6 @@ fn main() {
     env::set_var("RUST_BACKTRACE", "1");
     env_logger::init();
 
-    // let thing = Parent { child: Child {} };
-    // let name = name_struct!(thing.child);
-    // println!("{name}"); // on playground prints: "playground::Parent"
-
-    // let tree = Parent::from(Child {});
-    // Child, };
     let tree = Parent {
         path: "/parent".to_owned(),
         child: Child {
@@ -74,5 +94,7 @@ fn main() {
     println!("tree: {:#?}", tree);
     println!("tree.path: {:#?}", tree.path);
     println!("tree.child.path: {:#?}", tree.child.path);
+    let cam = "SomeCamelCaseString";
+    println!("'{}': '{}'", cam, to_snack_case(cam));
 }
 
