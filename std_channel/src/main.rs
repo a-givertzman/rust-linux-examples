@@ -16,7 +16,7 @@ use receiver::Receiver;
 fn main() {
     std::env::set_var("RUST_LOG", "info");
     env_logger::init();
-    let count = 100_000;
+    let count = 300_000;
     let receivers = 5;
     let producers = 7;
     let total_produced = count * producers;
