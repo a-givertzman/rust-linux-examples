@@ -33,14 +33,19 @@ impl MQueue {
         thread::spawn(move|| {
             log::info!("MQueue.run | Start");
             loop {
-                match recv.recv_timeout(Duration::from_millis(1000)) {
+                match recv.recv_timeout(Duration::from_millis(10)) {
                     Ok(event) => {
                         for send in &subscriptions {
-                            send.send(event.clone()).unwrap()
+                            if let Err(err) = send.send(event.clone()) {
+                                log::warn!("MQueue.run | Send error: {:?}", err);
+                            }
                         }
                     }
                     Err(err) => {
-                        panic!("MQueue.run | Error: {:?}", err)
+                        match err {
+                            mpsc::RecvTimeoutError::Timeout => {}
+                            mpsc::RecvTimeoutError::Disconnected => panic!("MQueue.run | Error: {:?}", err),
+                        }
                     }
                 }
                 if exit.load(Ordering::SeqCst) {

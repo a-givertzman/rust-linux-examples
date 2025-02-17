@@ -44,7 +44,7 @@ impl Receiver {
                     break;
                 }
             }
-            log::info!("Receiver({}).run | Exit", index);
+            log::info!("Receiver({}).run | Exit, Received: {}", index, received.load(Ordering::SeqCst));
         })
     }
     pub fn exit(&self) {
