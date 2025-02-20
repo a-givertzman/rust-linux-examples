@@ -3,6 +3,8 @@ members = [
     "queue",
     "std_channel",
     "tokio_channel",
+    "tokio_rt_std_channel",
+    "tokio_flume",
 ]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html

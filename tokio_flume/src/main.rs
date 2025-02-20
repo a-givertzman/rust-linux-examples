@@ -6,17 +6,17 @@ mod producer;
 mod receiver;
 mod value;
 
-use std::{sync::atomic::Ordering, thread::JoinHandle, time::{Duration, Instant}};
+use std::{sync::atomic::Ordering, time::Duration};
 
 use event::Event;
 use load::Load;
 use mqueue::MQueue;
 use producer::Producer;
 use receiver::Receiver;
+use tokio::{task::JoinHandle, time::Instant};
 
-///
-/// 
-fn main() {
+#[tokio::main]
+async fn main() {
     std::env::set_var("RUST_LOG", "info");
     env_logger::init();
     let count = 300_000;
@@ -43,7 +43,7 @@ fn main() {
     let p_h: Vec<JoinHandle<()>> = producers.iter_mut().map(|p| p.run()).collect();
     log::info!("main | {} producers executed ", producers.len());
     for h in r_h {
-        h.join().unwrap();
+        h.await.unwrap();
     }
     let total_elapsed = total_time.elapsed();
     let total_received = receivers.iter().fold(0, |acc, r| {
@@ -54,16 +54,16 @@ fn main() {
     assert!(target_total_received == total_received, "\ntarget: {target_total_received} \nresult: {total_received}");
     log::info!("main | {} receivers exited ", receivers.len());
     for h in p_h {
-        h.join().unwrap();
+        h.await.unwrap();
     }
     log::info!("main | {} producers exited ", receivers.len());
     loads.iter().for_each(|l| l.exit());
     for h in load_h {
-        h.join().unwrap();
+        h.await.unwrap();
     }
     log::info!("main | {} loads exited ", loads.len());
     mq.exit();
-    mq_h.join().unwrap();
+    // mq_h.await.unwrap();
     log::info!("main | MQueue exited ");
     log::info!("main | ---------------------------");
     log::info!("main | All done ");
