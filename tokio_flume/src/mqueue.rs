@@ -32,7 +32,7 @@ impl MQueue {
     ///
     /// 
     pub fn subscribe(&mut self) -> flume::Receiver<Event> {
-        let (send, recv) = flume::unbounded();
+        let (send, recv) = flume::bounded(10_000);
         self.subscriptions.push(send);
         recv
     }
@@ -45,22 +45,21 @@ impl MQueue {
         let h = tokio::spawn(async move {
             log::info!("MQueue.run | Start");
             loop {
-                match recv.recv() {
+                match recv.try_recv() {
                     Ok(event) => {
                         for send in &subscriptions {
-                            if let Err(err) = send.send(event.clone()) {
+                            if let Err(err) = send.send_async(event.clone()).await {
                                 log::warn!("MQueue.run | Send error: {:?}", err);
                             }
                         }
                     }
                     Err(err) => {
-                        panic!("MQueue.run | Receive error: {:?}", err);
-                        // match err {
-                        //     flume::RecvTimeoutError::Timeout => {
-                        //         // tokio::time::sleep(Duration::from_millis(10)).await;
-                        //     }
-                        //     flume::RecvTimeoutError::Disconnected => panic!("MQueue.run | Error: {:?}", err),
-                        // }
+                        match err {
+                            flume::TryRecvError::Empty => {
+                                tokio::time::sleep(Duration::from_millis(10)).await;
+                            }
+                            flume::TryRecvError::Disconnected => panic!("MQueue.run | Receive error: {:?}", err),
+                        };
                     }
                 }
                 if exit.load(Ordering::SeqCst) {

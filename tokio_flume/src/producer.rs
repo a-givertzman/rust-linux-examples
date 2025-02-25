@@ -32,7 +32,7 @@ impl Producer {
         tokio::spawn(async move {
             log::info!("Producer({}).run | Start", index);
             for event in data {
-                match send.send(event) {
+                match send.send_async(event).await {
                     Ok(_) => {}
                     Err(err) => {
                         log::info!("Producer({}).run | Error: {:?}", index, err);

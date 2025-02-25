@@ -35,7 +35,7 @@ impl Receiver {
         tokio::spawn(async move {
             log::info!("Receiver({}).run | Start", index);
             loop {
-                match recv.recv() {
+                match recv.try_recv() {
                     Ok(event) => {
                         let _ = event;
                         received.fetch_add(1, Ordering::SeqCst);      
@@ -44,13 +44,15 @@ impl Receiver {
                         }                  
                     }
                     Err(err) => {
-                        panic!("Receiver({}).run | Received: {}, Error: {:?}", index, received.load(Ordering::SeqCst), err);
-                        // match err {
-                        //     flume::TryRecvError::Empty => {}
-                        //     flume::TryRecvError::Disconnected => {
-                        //         panic!("Receiver({}).run | Received: {}, Error: {:?}", index, received.load(Ordering::SeqCst), err);
-                        //     }
-                        // }
+                        // panic!("Receiver({}).run | Received: {}, Error: {:?}", index, received.load(Ordering::SeqCst), err);
+                        match err {
+                            flume::TryRecvError::Empty => {
+                                tokio::time::sleep(Duration::from_millis(10)).await;
+                            }
+                            flume::TryRecvError::Disconnected => {
+                                panic!("Receiver({}).run | Received: {}, Error: {:?}", index, received.load(Ordering::SeqCst), err);
+                            }
+                        }
                     }
                 }
                 if exit.load(Ordering::SeqCst) {
