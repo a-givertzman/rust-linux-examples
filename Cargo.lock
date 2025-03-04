@@ -181,6 +181,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "coco"
+version = "0.3.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "04d5eef9c9354cbb35d5069c39054c657469d2aa7789d4c71d0a6b686dc48bea"
+dependencies = [
+ "either",
+ "scopeguard 0.3.3",
+]
+
+[[package]]
 name = "colorchoice"
 version = "1.0.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -281,6 +291,12 @@ dependencies = [
  "critical-section",
  "defmt",
 ]
+
+[[package]]
+name = "either"
+version = "1.14.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b7914353092ddf589ad78f25c5c1c21b7f80b0ff8621e7c814c3485b5306da9d"
 
 [[package]]
 name = "env_filter"
@@ -466,7 +482,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "07af8b9cdd281b7915f413fa73f29ebd5d55d0d3f0155584dade1ff18cea1b17"
 dependencies = [
  "autocfg",
- "scopeguard",
+ "scopeguard 1.2.0",
 ]
 
 [[package]]
@@ -798,6 +814,12 @@ checksum = "6ea1a2d0a644769cc99faa24c3ad26b379b786fe7c36fd3c546254801650e6dd"
 
 [[package]]
 name = "scopeguard"
+version = "0.3.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "94258f53601af11e6a49f722422f6e3425c52b06245a5cf9bc09908b174f5e27"
+
+[[package]]
+name = "scopeguard"
 version = "1.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "94143f37725109f92c262ed2cf5e59bce7498c01bcc1502d7b9afe439a4e9f49"
@@ -1008,6 +1030,7 @@ dependencies = [
 name = "tokio_channel"
 version = "0.1.0"
 dependencies = [
+ "coco",
  "env_logger",
  "log",
  "rand 0.9.0",

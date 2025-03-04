@@ -6,9 +6,14 @@ edition = "2021"
 [dependencies]
 log = "0.4"
 env_logger = "0.11"
-
+#
+# Async runtime
 tokio = { version = "1.43", features = ["full"] }
-
+#
+# Collections
+coco = "^0.3"
+#
+#
 rand = "^0.9"
 
 [[bin]]

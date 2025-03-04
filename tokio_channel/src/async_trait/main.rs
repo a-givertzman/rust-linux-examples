@@ -1,6 +1,6 @@
 mod request;
 use std::{future::Future, pin::Pin};
-use request::Request;
+use request::{Link, Request};
 // use request::AsyncFn;
 ///
 /// Async trait defined
@@ -65,9 +65,12 @@ async fn main() {
     std::env::set_var("RUST_LOG", "info");
     env_logger::init();
     let mut step = EvaluationStep::new(
-        Request::new(async move |val| {
-            format!("{}/Reply", val)
-        }),
+        Request::new(
+            Link {},
+            async |val, link| {
+                (format!("{:?}/{}/Reply", link, val), link)
+            },
+        ),
         FakeStep { ctx: Context { result: "0.0".to_owned() } }
     );
     let result = step.eval().await;
