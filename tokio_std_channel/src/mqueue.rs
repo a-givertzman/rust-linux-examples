@@ -42,7 +42,7 @@ impl MQueue {
         let subscriptions: Vec<mpsc::Sender<Event>> = self.subscriptions.drain(0..).collect();
         let recv = self.recv.take().unwrap();
         let exit = self.exit.clone();
-        let h = tokio::spawn(async move {
+        let h = tokio::task::spawn_blocking(move|| {
             log::info!("MQueue.run | Start");
             loop {
                 match recv.recv_timeout(Duration::from_millis(300)) {
@@ -54,7 +54,8 @@ impl MQueue {
                         }
                     }
                     Err(err) => match err {
-                        mpsc::RecvTimeoutError::Timeout => tokio::time::sleep(Duration::from_millis(10)).await,
+                        mpsc::RecvTimeoutError::Timeout => std::thread::sleep(Duration::from_millis(10)),
+                        // mpsc::RecvTimeoutError::Timeout => tokio::time::sleep(Duration::from_millis(10)).await,
                         mpsc::RecvTimeoutError::Disconnected => panic!("MQueue.run | Error: {:?}", err),
                     }
                 }
@@ -63,6 +64,10 @@ impl MQueue {
                 }
             }
             log::info!("MQueue.run | Exit");
+            // if let Err(err) = tokio::task::spawn_blocking(move|| {
+            // }).await {
+            //     log::error!("MQueue.run | spawn_blocking error: {:?}", err);
+            // }
         });
         log::info!("MQueue.run | Start - Ok");
         h

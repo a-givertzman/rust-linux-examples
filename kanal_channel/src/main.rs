@@ -6,24 +6,37 @@ mod producer;
 mod receiver;
 mod value;
 
-use std::{sync::atomic::Ordering, time::Duration};
+use std::{sync::atomic::Ordering, thread::JoinHandle, time::{Duration, Instant}};
 
 use event::Event;
 use load::Load;
 use mqueue::MQueue;
 use producer::Producer;
 use receiver::Receiver;
-use tokio::{task::JoinHandle, time::Instant};
+use serde::Deserialize;
 
-#[tokio::main]
-async fn main() {
-    std::env::set_var("RUST_LOG", "info");
+#[derive(Deserialize)]
+pub struct Config {
+    pub events: usize,
+    pub receivers: usize,
+    pub producers: usize,
+    pub loads: usize,
+    pub load_interval: u64,
+}
+
+///
+/// 
+fn main() {
+    unsafe { std::env::set_var("RUST_LOG", "info") };
     env_logger::init();
-    let count = 300_000;
-    let receivers = 5;
-    let producers = 7;
-    let loads = 10;
-    let load_interval = Duration::from_millis(10);
+    let path = "config.yaml";
+    let rdr = std::fs::OpenOptions::new().read(true).open(path).unwrap();
+    let config: Config = serde_yaml::from_reader(rdr).unwrap();
+    let count = config.events;   // per producer 300_000;
+    let receivers = config.receivers;
+    let producers = config.producers;
+    let loads = config.loads;
+    let load_interval = Duration::from_millis(config.load_interval);
     let total_produced = count * producers;
     let data: Vec<Event> = (0..count).map(|i| Event {
         name: i.to_string(),
@@ -38,12 +51,12 @@ async fn main() {
     let mq_h = mq.run();
     let load_h: Vec<JoinHandle<()>> = loads.iter_mut().map(|l| l.run()).collect();
     log::info!("main | {} loads executed ", loads.len());
-    let recv_h: Vec<JoinHandle<()>> = receivers.iter_mut().map(|r| r.run()).collect();
+    let r_h: Vec<JoinHandle<()>> = receivers.iter_mut().map(|r| r.run()).collect();
     log::info!("main | {} receivers executed ", receivers.len());
-    let prod_h: Vec<JoinHandle<()>> = producers.iter_mut().map(|p| p.run()).collect();
+    let p_h: Vec<JoinHandle<()>> = producers.iter_mut().map(|p| p.run()).collect();
     log::info!("main | {} producers executed ", producers.len());
-    for h in recv_h {
-        h.await.unwrap();
+    for h in r_h {
+        h.join().unwrap();
     }
     let total_elapsed = total_time.elapsed();
     let total_received = receivers.iter().fold(0, |acc, r| {
@@ -53,20 +66,19 @@ async fn main() {
     });
     assert!(target_total_received == total_received, "\ntarget: {target_total_received} \nresult: {total_received}");
     log::info!("main | {} receivers exited ", receivers.len());
-    for h in prod_h {
-        h.await.unwrap();
+    for h in p_h {
+        h.join().unwrap();
     }
     log::info!("main | {} producers exited ", receivers.len());
     loads.iter().for_each(|l| l.exit());
     for h in load_h {
-        h.await.unwrap();
+        h.join().unwrap();
     }
     log::info!("main | {} loads exited ", loads.len());
     mq.exit();
-    mq_h.await.unwrap();
-    log::info!("main | MQueue exited ");
+    mq_h.join().unwrap();
+    log::info!("main | kanal channel ");
     log::info!("main | ---------------------------");
-    log::info!("main | All done ");
     log::info!("main | Events: {:?}", data.len());
     log::info!("main | ---------------------------");
     log::info!("main | Producers: {:?}", producers.len());

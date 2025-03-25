@@ -1,5 +1,5 @@
 [package]
-name = "std_channel"
+name = "kanal_channel"
 version = "0.1.0"
 edition = "2024"
 
@@ -12,3 +12,4 @@ serde_yaml = { workspace = true }
 
 rand = "^0.9"
 
+kanal = "0.1"

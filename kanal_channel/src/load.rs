@@ -1,7 +1,6 @@
-use std::{sync::{atomic::{AtomicBool, Ordering}, mpsc, Arc}, time::Duration};
+use std::{sync::{atomic::{AtomicBool, Ordering}, Arc}, thread::{self, JoinHandle}, time::Duration};
 use rand::Rng;
-use tokio::task::JoinHandle;
-use crate::{cycle::ServiceCycle, event::Event};
+use crate::cycle::ServiceCycle;
 ///
 /// 
 pub struct Load {
@@ -30,19 +29,17 @@ impl Load {
         let exit = self.exit.clone();
         let mut rng = rand::rng();
         let p = rng.random_range(10_000..100_000);
-        tokio::spawn(async move {
+        thread::spawn(move|| {
             log::info!("{}.run | Start", dbg);
             let mut cycle = ServiceCycle::new(&format!("{}", dbg), interval);
             loop {
                 cycle.start();
-                tokio::task::spawn_blocking(move || {
-                    let _lucas_lehmer = Self::lucas_lehmer(p);
-                }).await.unwrap();
+                let _lucas_lehmer = Self::lucas_lehmer(p);
                 // log::info!("{}.run | P: {:?}, lucas_lehmer: {}", dbg, p, lucas_lehmer);
                 if exit.load(Ordering::SeqCst) {
                     break;
                 }
-                cycle.wait().await;
+                cycle.wait();
             }
             log::info!("{}.run | Exit", dbg);
         })

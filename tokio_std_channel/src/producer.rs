@@ -29,7 +29,7 @@ impl Producer {
         let data: Vec<Event> = self.data.drain(0..).collect();
         let send = self.send.take().unwrap();
         let exit = self.exit.clone();
-        tokio::spawn(async move {
+        tokio::task::spawn_blocking(move|| {
             log::info!("Producer({}).run | Start", index);
             for event in data {
                 match send.send(event) {

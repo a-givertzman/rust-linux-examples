@@ -13,17 +13,30 @@ use load::Load;
 use mqueue::MQueue;
 use producer::Producer;
 use receiver::Receiver;
+use serde::Deserialize;
 use tokio::{task::JoinHandle, time::Instant};
+
+#[derive(Deserialize)]
+pub struct Config {
+    pub events: usize,
+    pub receivers: usize,
+    pub producers: usize,
+    pub loads: usize,
+    pub load_interval: u64,
+}
 
 #[tokio::main]
 async fn main() {
-    std::env::set_var("RUST_LOG", "info");
+    unsafe { std::env::set_var("RUST_LOG", "info") };
     env_logger::init();
-    let count = 300_000;
-    let receivers = 5;
-    let producers = 7;
-    let loads = 10;
-    let load_interval = Duration::from_millis(10);
+    let path = "config.yaml";
+    let rdr = std::fs::OpenOptions::new().read(true).open(path).unwrap();
+    let config: Config = serde_yaml::from_reader(rdr).unwrap();
+    let count = config.events;   // per producer 300_000;
+    let receivers = config.receivers;
+    let producers = config.producers;
+    let loads = config.loads;
+    let load_interval = Duration::from_millis(config.load_interval);
     let total_produced = count * producers;
     let data: Vec<Event> = (0..count).map(|i| Event {
         name: i.to_string(),
@@ -64,9 +77,8 @@ async fn main() {
     log::info!("main | {} loads exited ", loads.len());
     mq.exit();
     // mq_h.await.unwrap();
-    log::info!("main | MQueue exited ");
+    log::info!("main | tokio flume");
     log::info!("main | ---------------------------");
-    log::info!("main | All done ");
     log::info!("main | Events: {:?}", data.len());
     log::info!("main | ---------------------------");
     log::info!("main | Producers: {:?}", producers.len());

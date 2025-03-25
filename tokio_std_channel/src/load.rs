@@ -35,8 +35,12 @@ impl Load {
             let mut cycle = ServiceCycle::new(&format!("{}", dbg), interval);
             loop {
                 cycle.start();
-                let _lucas_lehmer = Self::lucas_lehmer(p);
-                // log::info!("{}.run | P: {:?}, lucas_lehmer: {}", dbg, p, lucas_lehmer);
+                if let Err(err) = tokio::task::spawn_blocking(move|| {
+                    let _lucas_lehmer = Self::lucas_lehmer(p);
+                    // log::info!("{}.run | P: {:?}, lucas_lehmer: {}", dbg, p, lucas_lehmer);
+                }).await {
+                    log::error!("{}.run | spawn_blocking error: {:?}", dbg, err);
+                }
                 if exit.load(Ordering::SeqCst) {
                     break;
                 }

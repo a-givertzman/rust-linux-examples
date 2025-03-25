@@ -62,7 +62,7 @@ impl Eval<Context> for FakeStep {
 //
 #[tokio::main]
 async fn main() {
-    std::env::set_var("RUST_LOG", "info");
+    unsafe { std::env::set_var("RUST_LOG", "info"); }
     env_logger::init();
     let mut step = EvaluationStep::new(
         Request::new(

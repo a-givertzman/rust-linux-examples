@@ -1,11 +1,15 @@
 [package]
 name = "tokio_channel"
 version = "0.1.0"
-edition = "2021"
+edition = "2024"
+default-run = "main"
 
 [dependencies]
 log = "0.4"
 env_logger = "0.11"
+#
+serde = { workspace = true }
+serde_yaml = { workspace = true }
 #
 # Async runtime
 tokio = { version = "1.43", features = ["full"] }
@@ -15,6 +19,11 @@ coco = "^0.3"
 #
 #
 rand = "^0.9"
+
+
+[[bin]]
+name = "main"
+path = "src/main.rs"
 
 [[bin]]
 name = "async_trait"

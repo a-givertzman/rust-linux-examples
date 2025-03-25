@@ -6,7 +6,7 @@ mod producer;
 mod receiver;
 mod value;
 
-use std::{io::Read, sync::atomic::Ordering, time::Duration};
+use std::{sync::atomic::Ordering, time::Duration};
 
 use event::Event;
 use load::Load;
@@ -25,9 +25,11 @@ pub struct Config {
     pub load_interval: u64,
 }
 
-#[tokio::main]
+// #[tokio::main(flavor = "multi_thread")]
+#[tokio::main(flavor = "multi_thread", worker_threads = 20)]
+// #[tokio::main]
 async fn main() {
-    unsafe { std::env::set_var("RUST_LOG", "info"); }
+    unsafe {std::env::set_var("RUST_LOG", "info") };
     env_logger::init();
     let path = "config.yaml";
     let rdr = std::fs::OpenOptions::new().read(true).open(path).unwrap();
@@ -51,11 +53,11 @@ async fn main() {
     let mq_h = mq.run();
     let load_h: Vec<JoinHandle<()>> = loads.iter_mut().map(|l| l.run()).collect();
     log::info!("main | {} loads executed ", loads.len());
-    let r_h: Vec<JoinHandle<()>> = receivers.iter_mut().map(|r| r.run()).collect();
+    let recv_h: Vec<JoinHandle<()>> = receivers.iter_mut().map(|r| r.run()).collect();
     log::info!("main | {} receivers executed ", receivers.len());
-    let p_h: Vec<JoinHandle<()>> = producers.iter_mut().map(|p| p.run()).collect();
+    let prod_h: Vec<JoinHandle<()>> = producers.iter_mut().map(|p| p.run()).collect();
     log::info!("main | {} producers executed ", producers.len());
-    for h in r_h {
+    for h in recv_h {
         h.await.unwrap();
     }
     let total_elapsed = total_time.elapsed();
@@ -66,7 +68,7 @@ async fn main() {
     });
     assert!(target_total_received == total_received, "\ntarget: {target_total_received} \nresult: {total_received}");
     log::info!("main | {} receivers exited ", receivers.len());
-    for h in p_h {
+    for h in prod_h {
         h.await.unwrap();
     }
     log::info!("main | {} producers exited ", receivers.len());
@@ -77,7 +79,7 @@ async fn main() {
     log::info!("main | {} loads exited ", loads.len());
     mq.exit();
     mq_h.await.unwrap();
-    log::info!("main | tokio channel");
+    log::info!("main | tokio + std channel");
     log::info!("main | ---------------------------");
     log::info!("main | Events: {:?}", data.len());
     log::info!("main | ---------------------------");

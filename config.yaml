@@ -1,0 +1,5 @@
+events: 300000        # per producer
+receivers: 5
+producers: 14
+loads: 30
+load_interval: 300     # milles
