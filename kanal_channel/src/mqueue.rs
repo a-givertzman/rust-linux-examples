@@ -10,7 +10,7 @@ pub struct MQueue {
 }
 impl MQueue {
     pub fn new() -> Self {
-        let (send, recv) = kanal::unbounded();
+        let (send, recv) = kanal::bounded(10_000);
         Self {
             send,
             subscriptions: Vec::new(),
@@ -22,7 +22,7 @@ impl MQueue {
         self.send.clone()
     }
     pub fn subscribe(&mut self) -> kanal::Receiver<Event> {
-        let (send, recv) = kanal::unbounded();
+        let (send, recv) = kanal::bounded(10_000);
         self.subscriptions.push(send);
         recv
     }

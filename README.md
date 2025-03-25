@@ -1,5 +1,9 @@
 # Results on `kanal::channel`
 
+> Note: fastest results are reached on the anbounded channels
+>
+> bounded(10_000) channels gives same results as tokio::channel
+
 ```log
 [2025-03-25T10:39:17Z INFO  kanal_channel] main | kanal channel 
 [2025-03-25T10:39:17Z INFO  kanal_channel] main | ---------------------------
@@ -17,6 +21,8 @@
 ```
 
 # Results on `tokio::channel`
+
+> Note: current results on the bounded(10_000) channels
 
 ```log
 [2025-03-25T10:40:59Z INFO  main] main | tokio channel
