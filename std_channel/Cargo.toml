@@ -12,3 +12,5 @@ serde_yaml = { workspace = true }
 
 rand = "^0.9"
 
+async-std = "^1.13"
+
