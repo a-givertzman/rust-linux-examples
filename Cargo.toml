@@ -2,6 +2,7 @@
 members = [
     "queue",
     "kanal_channel",
+    "kanal_channel_encoded",
     "std_channel",
     "tokio_channel",
     "tokio_std_channel",
@@ -13,3 +14,4 @@ members = [
 [workspace.dependencies]
 serde = { version = "^1.0", features = ["derive"] }
 serde_yaml = "^0.9"
+serde_json = "^1.0"
