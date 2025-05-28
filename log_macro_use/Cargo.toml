@@ -1,0 +1,9 @@
+[package]
+name = "log_macro_use"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+env_logger = { workspace = true }
+
+log_macro = { path = "../log_macro" }
