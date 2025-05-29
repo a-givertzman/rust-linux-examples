@@ -1,8 +1,8 @@
-mod macro_input;
-use macro_input::MacroInput;
+mod log_macro_input;
+use log_macro_input::LogMacroInput;
 use proc_macro::TokenStream;
-use quote::quote;
-use syn::ItemFn;
+use quote::{quote, IdentFragment};
+use syn::{spanned::Spanned, ItemFn};
 
 ///
 /// Define this attribute above the method,
@@ -43,12 +43,8 @@ pub fn dbg(args: TokenStream, input: TokenStream) -> TokenStream {
 
     // Extract statements in the body of the functions
     let statements = block.stmts;
-
     // Store the function identifier for logging
-    let function_identifier = sig.ident.clone();
-    // println!("function: {}", function_identifier);
-    // println!("statements: {}", stringify!(#statements));
-    // Reconstruct the function as output using parsed input
+    let function_identifier = sig.ident.span().source_text();
     quote!(
         // Reapply all the other attributes on this function.
         // The compiler doesn't include the macro we are
@@ -56,38 +52,103 @@ pub fn dbg(args: TokenStream, input: TokenStream) -> TokenStream {
         #(#attrs)*
         // Reconstruct the function declaration
         #vis #sig {
-            // At the beginning of the function, create an instance of `Instant`
-            // let __dbg = std::time::Instant::now();
-            let __fn_name = stringify!(#function_identifier);
+            // Defining variable containing the function identifier
+            let __fn_label = #function_identifier;
 
-            // Create a new block, the body of which is the body of the function.
-            // Store the return value of this block as a variable so that we can
-            // return it later from the parent function.
-            println!("function: {}", stringify!(#function_identifier));
+            // println!("function: {}", stringify!(#function_identifier));
             
-            // Log the duration information for this function
-            // println!("{} took {}μs", stringify!(#function_identifier), __start.elapsed().as_micros());
-            
-            let __result = {
-                #(#statements)*
-            };
-            // Return the result (if any)
-            return __result;
+            #(#statements)*
         }
     ).into()
 }
-
+///
+/// Logs a message at the info level.
+#[proc_macro]
+pub fn info(tokens: TokenStream) -> TokenStream {
+    let value = syn::parse_macro_input!(tokens as LogMacroInput);
+    let f = value.fmt;
+    let vals = value.vals.into_pairs();
+    quote!(
+        log::info!(
+            "{}.{} | {:?}",
+            self.dbg,
+            __fn_label,
+            format!(
+                #f,
+                #(#vals)*
+            )
+        );
+    ).into()
+}
+///
+/// Logs a message at the debug level.
 #[proc_macro]
 pub fn debug(tokens: TokenStream) -> TokenStream {
-    println!("tokens: {:#?}", tokens);
-    let value = syn::parse_macro_input!(tokens as MacroInput);
-    let f = &value.fmt;
-    let vals = &value.values;
+    let value = syn::parse_macro_input!(tokens as LogMacroInput);
+    let f = value.fmt;
+    let vals = value.vals.into_pairs();
     quote!(
         log::debug!(
             "{}.{} | {:?}",
             self.dbg,
-            __fn_name,
+            __fn_label,
+            format!(
+                #f,
+                #(#vals)*
+            )
+        );
+    ).into()
+}
+///
+/// Logs a message at the trace level.
+#[proc_macro]
+pub fn trace(tokens: TokenStream) -> TokenStream {
+    let value = syn::parse_macro_input!(tokens as LogMacroInput);
+    let f = value.fmt;
+    let vals = value.vals.into_pairs();
+    quote!(
+        log::trace!(
+            "{}.{} | {:?}",
+            self.dbg,
+            __fn_label,
+            format!(
+                #f,
+                #(#vals)*
+            )
+        );
+    ).into()
+}
+///
+/// Logs a message at the warn level.
+#[proc_macro]
+pub fn warn(tokens: TokenStream) -> TokenStream {
+    let value = syn::parse_macro_input!(tokens as LogMacroInput);
+    let f = value.fmt;
+    let vals = value.vals.into_pairs();
+    quote!(
+        log::warn!(
+            "{}.{} | {:?}",
+            self.dbg,
+            __fn_label,
+            format!(
+                #f,
+                #(#vals)*
+            )
+        );
+    ).into()
+}
+///
+/// Logs a message at the error level.
+#[proc_macro]
+pub fn error(tokens: TokenStream) -> TokenStream {
+    let value = syn::parse_macro_input!(tokens as LogMacroInput);
+    let f = value.fmt;
+    let vals = value.vals.into_pairs();
+    quote!(
+        log::error!(
+            "{}.{} | {:?}",
+            self.dbg,
+            __fn_label,
             format!(
                 #f,
                 #(#vals)*
