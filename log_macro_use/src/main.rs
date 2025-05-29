@@ -8,7 +8,8 @@ use log_macro::dbg;
 
 
 fn main() {
-    println!("Hello, world!");
+    unsafe { std::env::set_var("RUST_LOG", "debug"); }
+    env_logger::init();
     let service = Service::new();
     service.run();
 }
@@ -27,10 +28,12 @@ impl Service {
     }
     #[dbg("dbg-custom-name")]
     pub fn run(&self) {
+        log_macro::debug!("Start");
         for i in 0..3 {
             // println!("{}.{__fn_name} | i: {i}", self.dbg)
-            log_macro::debug!(i);
+            log_macro::debug!("{}", i);
             // log_macro::debug!("{}.{} | i: {}", self.dbg, __fn_name, i);
         }
+        log_macro::debug!("Exit");
     }
 }

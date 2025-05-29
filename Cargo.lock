@@ -830,7 +830,6 @@ dependencies = [
 name = "log_macro"
 version = "0.1.0"
 dependencies = [
- "log",
  "quote",
  "strfmt",
  "syn",
@@ -841,6 +840,7 @@ name = "log_macro_use"
 version = "0.1.0"
 dependencies = [
  "env_logger",
+ "log",
  "log_macro",
 ]
 

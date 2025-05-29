@@ -1,26 +1,28 @@
 mod macro_input;
-
 use macro_input::MacroInput;
 use proc_macro::TokenStream;
 use quote::quote;
 use syn::ItemFn;
-use strfmt::strfmt;
 
-
-// #[proc_macro_derive(Dbg)]
-// pub fn derive_answer_fn(input: TokenStream) -> TokenStream {
-//     let input = syn::parse_macro_input!(input as DeriveInput);
-//     if let syn::Data::Struct(ref data) = input.data {
-//     }
-//     TokenStream::from(
-//         syn::Error::new(
-//             input.ident.span(),
-//             "Only structs with named fields can derive `FromRow`"
-//         ).to_compile_error()
-//     )
-// }
-
-
+///
+/// Define this attribute above the method,
+/// to make possible using a log macros as
+/// 
+/// ```ignore
+/// struct MyStruct {
+///     dbg: String,    // any type implements Display, the name of this field must be `dbg`
+/// }
+/// impl MyStruct {
+///     #[dbg]
+///     pub fn show(&self, val: usize) {
+///         log::debug!("val: {}", val);
+///     }
+/// }
+/// fn main() {
+///     let my_struct = MyStruct { dbg: "MyStruct".into() };
+///     my_stryct.show(12);       // MyStruct.show | val: 12
+/// }
+/// ```
 #[proc_macro_attribute]
 pub fn dbg(args: TokenStream, input: TokenStream) -> TokenStream {
     println!("attrs: {:#?}", args);
@@ -78,16 +80,18 @@ pub fn dbg(args: TokenStream, input: TokenStream) -> TokenStream {
 #[proc_macro]
 pub fn debug(tokens: TokenStream) -> TokenStream {
     println!("tokens: {:#?}", tokens);
-    // Parse input as a string literal
     let value = syn::parse_macro_input!(tokens as MacroInput);
-    // let value = syn::parse_macro_input!(tokens as syn::Expr);
-    // let value = syn::punctuated::Punctuated::<syn::Expr, syn::Token![,]>::parse_terminated
-    //     .parse(item)
-    //     .unwrap();
     let f = &value.fmt;
     let vals = &value.values;
-    let vals = strfmt(f, vals);
     quote!(
-        // println!("{}.{} | {:?}", self.dbg, __fn_name, #value.);
+        log::debug!(
+            "{}.{} | {:?}",
+            self.dbg,
+            __fn_name,
+            format!(
+                #f,
+                #(#vals)*
+            )
+        );
     ).into()
 }
