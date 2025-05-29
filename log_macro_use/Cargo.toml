@@ -9,4 +9,4 @@ env_logger = { workspace = true }
 
 log_macro = { path = "../log_macro" }
 
-sal-core = { git = "https://github.com/a-givertzman/rust-sal-core.git", branch = "Dbg" }
+sal-core = { git = "https://github.com/a-givertzman/rust-sal-core.git", tag = "0.0.4" }
