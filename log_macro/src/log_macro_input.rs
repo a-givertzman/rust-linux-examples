@@ -1,4 +1,4 @@
-use syn::{punctuated::Punctuated, spanned::Spanned, Meta};
+use syn::punctuated::Punctuated;
 
 ///
 /// ### Extracts `TokenStream` for function-like proc macro

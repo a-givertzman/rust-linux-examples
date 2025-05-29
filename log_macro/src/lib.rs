@@ -1,8 +1,8 @@
 mod log_macro_input;
 use log_macro_input::LogMacroInput;
 use proc_macro::TokenStream;
-use quote::{quote, IdentFragment};
-use syn::{spanned::Spanned, ItemFn};
+use quote::quote;
+use syn::ItemFn;
 
 ///
 /// Define this attribute above the method,
@@ -24,8 +24,8 @@ use syn::{spanned::Spanned, ItemFn};
 /// }
 /// ```
 #[proc_macro_attribute]
-pub fn dbg(args: TokenStream, input: TokenStream) -> TokenStream {
-    println!("attrs: {:#?}", args);
+pub fn dbg(_args: TokenStream, input: TokenStream) -> TokenStream {
+    // println!("attrs: {:#?}", args);
     // log_duration_impl(args, item)
     let item = input.clone();
     let item = syn::parse_macro_input!(item as ItemFn);

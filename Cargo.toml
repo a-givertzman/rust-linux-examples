@@ -1,4 +1,6 @@
 [workspace]
+workspace.resolver = "3"
+
 members = [
     "queue",
     "kanal_channel",
