@@ -5,6 +5,7 @@ mod pair;
 use std::time::Instant;
 use field::Field;
 use pair::Pair;
+use sal_core::dbg::Dbg;
 
 macro_rules! fields(
     { $($key:ident: $value:expr),+ } => {
@@ -24,6 +25,7 @@ macro_rules! fields(
 fn main() {
     unsafe { std::env::set_var("RUST_LOG", "info") };
     env_logger::init();
+    let dbg = Dbg::own("math_cache");
     let path = "config.yaml";
     let rdr = std::fs::OpenOptions::new().read(true).open(path).unwrap();
 
@@ -37,7 +39,7 @@ fn main() {
     };
 
 
-    let test_data = [
+    let test_data: [(i32, f64, Vec<Pair<f64>>); 5] = [
         (01, 0.1, vec![Pair::new(1, 2), Pair::new(5, 6)]),
         (02, 0.2, vec![Pair::new(0, 1), Pair::new(0, 4)]),
         (03, 0.3, vec![Pair::new(0, 1), Pair::new(0, 1)]),
@@ -45,13 +47,19 @@ fn main() {
         (05, 0.0, vec![Pair::new(0, 1), Pair::new(0, 1)]),
     ];
 
-    let field: Field<f64> = Field::new(vec![0.0, 0.1, 0.2, 0.3, 0.2, 0.1, 0.0, -0.1]);
+    let field: Field<f64> = Field::new(&dbg, vec![0.0, 0.1, 0.2, 0.3, 0.2, 0.1, 0.0, -0.1]);
     for (step, val, target) in test_data {
         let result = field.get(val);
         log::info!("main | step {step}  val: {:?} => Pairs: {:?}", r, result);
     }
     
     let total_elapsed = total_time.elapsed();
+
+    let v = vec![0.0, 0.1, 0.2, 0.3, 0.2, 0.1, 0.0, -0.1];
+    let f = 0.15;
+    // log::info!("main | find: {f}, {:?}", v.binary_search(f));
+
+    
     log::info!("main | math cache ");
     log::info!("main | ---------------------------");
     log::info!("main | args: {:?}", r);
