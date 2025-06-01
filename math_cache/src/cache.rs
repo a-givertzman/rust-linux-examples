@@ -22,11 +22,13 @@ impl<T: Num + PartialOrd + Copy> Cache<T> {
     ///
     /// Returns the row, associated with specivied arguments
     pub fn get(&self, args: IndexMap<String, T>) -> IndexMap<String, T> {
+        let mut pairs = IndexMap::new();
         let mut result = IndexMap::new();
         for (key, val) in args {
             match self.fields.get(&key) {
                 Some(field) => {
-                    let pairs = field.get(val);
+                    let pair = field.get(val);
+                    pairs.insert(key, pair);
                 }
                 None => panic!("Cache.get | Requested key `{key}` - is not found"),
             }
