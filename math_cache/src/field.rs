@@ -11,7 +11,6 @@ use crate::pair::Pair;
 pub struct Field<T> {
     dbg: Dbg,
     extremums: Vec<Pair<T>>,
-    sequences: Vec<Vec<T>>,
     values: Vec<T>,
 }
 //
@@ -20,23 +19,24 @@ impl<T: Num + PartialOrd + Copy + Display> Field<T> {
     ///
     /// Returns [Field] new instance
     pub fn new(parent: impl Into<String>, values: Vec<T>) -> Self {
-        let (sequences, extremums) = Self::extremums(values.clone(), T::zero());
+        let (_, extremums) = Self::extremums(values.clone(), T::zero());
         Self {
             dbg: Dbg::new(parent, "Field"),
             extremums,
-            sequences,
+            // sequences,
             values,
         }
     }
     ///
     /// Returns [Pair]'s contains the requested value
+    #[dbg()]
     pub fn get(&self, val: T) -> Vec<Pair<T>> {
-        let result = vec![];
+        let mut result = vec![];
         for pair in &self.extremums {
-            for sequence in &self.sequences {
-                // sequence.binary_search(x)
+            let sequence = &self.values[pair.lower..=pair.upper];
+            if let Some(found) = Self::binary_search(sequence, val) {
+                result.push(found);
             }
-            // let lower = self.values pair.lower
         }
         result
     }
@@ -46,18 +46,20 @@ impl<T: Num + PartialOrd + Copy + Display> Field<T> {
         val
     }
     ///
-    /// 
-    #[dbg()]
+    /// Returns value if found in the sequence
+    /// - sequence must be sorted
+    /// - if `val` is less then first, returns first pair
+    /// - if `val` is grater then last, returns last pair
     fn binary_search(sequence: &[T], val: T) -> Option<Pair<T>> {
         if let Some(first) = sequence.first() {
             if val <= *first {
-                return Some(Pair::with(0, 0, *first));
+                return Some(Pair::with(0, 1, *first));
             }
         }
         if let Some(last) = sequence.last() {
             if val >= *last {
                 let len = sequence.len() -1;
-                return Some(Pair::with(len, len, *last));
+                return Some(Pair::with(len -1, len, *last));
             }
         }
         let mut len = sequence.len();
@@ -70,23 +72,22 @@ impl<T: Num + PartialOrd + Copy + Display> Field<T> {
             match val.partial_cmp(&sequence[mid]) {
                 Some(cmp) => {
                     match cmp {
-                        Ordering::Less => {
+                        Ordering::Less | Ordering::Equal => {
                             if mid > 0 {
                                 if val >= sequence[mid - 1] {
                                     return Some(Pair::with(mid -1, mid, val));
                                 }
                             }
-                            // base = base;
                         }
-                        Ordering::Equal => {
-                            if mid > 0 {
-                                return Some(Pair::with(mid -1, mid, val));
-                            } else if mid < (sequence.len() - 1) {
-                                return Some(Pair::with(mid, mid +1, val));
-                            } else {
-                                return Some(Pair::with(mid, mid, val));
-                            }
-                        }
+                        // Ordering::Equal => {
+                        //     if mid > 0 {
+                        //         return Some(Pair::with(mid -1, mid, val));
+                        //     } else if mid < (sequence.len() - 1) {
+                        //         return Some(Pair::with(mid, mid +1, val));
+                        //     } else {
+                        //         return Some(Pair::with(mid, mid, val));
+                        //     }
+                        // }
                         Ordering::Greater => {
                             if mid < (sequence.len() - 1) {
                                 if val <= sequence[mid + 1] {
@@ -255,11 +256,13 @@ mod field {
             let field = Field::new(&dbg, vals);
             let result = field.extremums.clone();
             let target = target_extermums;
+            // log::debug!("step {}  elapsed: {:?} \nresult: {:?}\ntarget: {:?}", step, time.elapsed(), field.extremums, target);
             assert!(result == target, "step {} \nresult: {:?}\ntarget: {:?}", step, result, target);
-            let result = field.sequences.clone();
+            let sequences: Vec<Vec<f64>> = result.iter().map(|pair| field.values[pair.lower..=pair.upper].to_vec()).collect();
+            let result = sequences.clone();
             let target = target_sequences;
             assert!(result == target, "step {} \nresult: {:?}\ntarget: {:?}", step, result, target);
-            log::debug!("step {}  elapsed: {:?} \nresult: {:?}\nresult: {:?}\ntarget: {:?}", step, time.elapsed(), field.extremums, field.sequences, target);
+            log::debug!("step {}  elapsed: {:?} \nresult: {:?}\nresult: {:?}\ntarget: {:?}", step, time.elapsed(), field.extremums, sequences, target);
         }
         test_duration.exit();
     }
@@ -276,24 +279,24 @@ mod field {
         test_duration.run().unwrap();
         let test_data = [
             (01,
+                0.00,
+                vec![0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7],
+                Some(Pair::with(0, 1, 0.00)),
+            ),
+            (02,
                 0.15,
                 vec![0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7],
                 Some(Pair::with(1, 2, 0.15)),
             ),
-            (02,
+            (03,
                 0.05,
                 vec![0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7],
                 Some(Pair::with(0, 1, 0.05)),
             ),
-            (03,
+            (04,
                 0.01,
                 vec![0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7],
                 Some(Pair::with(0, 1, 0.01)),
-            ),
-            (04,
-                0.55,
-                vec![0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7],
-                Some(Pair::with(5, 6, 0.55)),
             ),
             (05,
                 0.55,
@@ -301,24 +304,29 @@ mod field {
                 Some(Pair::with(5, 6, 0.55)),
             ),
             (06,
+                0.55,
+                vec![0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7],
+                Some(Pair::with(5, 6, 0.55)),
+            ),
+            (07,
                 0.65,
                 vec![0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7],
                 Some(Pair::with(6, 7, 0.65)),
             ),
-            (07,
+            (08,
                 -0.10,
                 vec![0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7],
-                Some(Pair::with(0, 0, 0.00)),
-            ),
-            (08,
-                0.70,
-                vec![0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7],
-                Some(Pair::with(7, 7, 0.70)),
+                Some(Pair::with(0, 1, 0.00)),
             ),
             (09,
+                0.70,
+                vec![0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7],
+                Some(Pair::with(6, 7, 0.70)),
+            ),
+            (10,
                 0.80,
                 vec![0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7],
-                Some(Pair::with(7, 7, 0.70)),
+                Some(Pair::with(6, 7, 0.70)),
             ),
         ];
         for (step, val, vals, target) in test_data {

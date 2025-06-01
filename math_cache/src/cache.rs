@@ -36,7 +36,7 @@ impl<T: Num + PartialOrd + Copy + Display> Cache<T> {
                     let pair = field.get(val);
                     pairs.insert(key, pair);
                 }
-                None => panic!("Cache.get | Requested key `{key}` - is not found"),
+                None => log::warn!("Cache.get | Requested key `{key}` - is not found"),
             }
         }
         result
