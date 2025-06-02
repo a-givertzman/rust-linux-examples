@@ -13,12 +13,12 @@ pub struct Cache<T> {
 }
 //
 //
-impl<T: Num + PartialOrd + Ord + Copy + Display + Encode + Decode<()>> Cache<T> {
+impl<T: Num + PartialOrd + Copy + Display + Encode + Decode<()>> Cache<T> {
     ///
     /// Returns [Field] new instance
-    pub fn new(parent: impl Into<String>, fields: IndexMap<String, Vec<T>>, exclude: Vec<usize>) -> Self {
+    pub fn new(parent: impl Into<String>, fields: impl Into<IndexMap<String, Vec<T>>>, exclude: Vec<usize>) -> Self {
         let dbg = Dbg::new(parent, "Cache");
-        let fields = fields.into_iter().map(|(key, values)| {
+        let fields = fields.into().into_iter().map(|(key, values)| {
             (key, Field::new(&dbg, values))
         }).collect();
         Self {
@@ -118,7 +118,7 @@ impl<T: Num + PartialOrd + Ord + Copy + Display + Encode + Decode<()>> Cache<T> 
                 // upper value from field
                 let up = field.get_by_idx(upper);
                 let delta = up - lo;
-                let base = [lo, up].iter().min().unwrap().to_owned();
+                let base = [lo, up].iter().min_by(|a, b| a.partial_cmp(b).unwrap()).unwrap().to_owned();
                 let interpolation =  base + delta * ratio;
                 result.push((key.to_owned(), interpolation));
             }
@@ -137,3 +137,17 @@ struct _Cache<T> {
     fields: HashMap<String, _Field<T>>,
     exclude: Vec<usize>,
 }
+
+#[macro_export]
+macro_rules! fields(
+    { $($key:ident: $value:expr),+ } => {
+        {
+            let mut m = ::indexmap::IndexMap::new();
+            $(
+                m.insert(stringify!($key).to_owned(), $value);
+            )+
+            m
+        }
+     };
+);
+

@@ -8,19 +8,6 @@ use field::Field;
 use pair::Pair;
 use sal_core::dbg::Dbg;
 
-macro_rules! fields(
-    { $($key:ident: $value:expr),+ } => {
-        {
-            let mut m = ::indexmap::IndexMap::new();
-            $(
-                m.insert(stringify!($key), $value);
-            )+
-            m
-        }
-     };
-);
-
-
 ///
 /// 
 fn main() {
