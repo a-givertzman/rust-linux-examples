@@ -74,7 +74,7 @@ impl<T: Num + PartialOrd + Copy + Display + Encode + Decode<()>> Cache<T> {
     ///
     /// Returns the row's, associated with requested arguments
     pub fn get(&self, args: &[(&str, T)]) -> Vec<Vec<(String, T)>> {
-        let mut result: Vec<Vec<(String, T)>> = vec![args.iter().map(|(k, v)| (k.to_string(), v.to_owned())).collect()];
+        let mut result = vec![];
         let mut pairs: IndexMap<(usize, usize), Vec<(String, Pair<T>)>> = IndexMap::new();
         let requested_keys: Vec<String> = args.iter().map(|(k, _)| k.to_owned().into()).collect();
         let keys: Vec<String> = self.fields
