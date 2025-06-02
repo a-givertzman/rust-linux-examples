@@ -3,13 +3,11 @@
 mod cache {
     use bincode::{Decode, Encode};
     use indexmap::IndexMap;
-    use log::{warn, info, debug};
     use sal_core::dbg::Dbg;
     use std::{collections::HashMap, fs::OpenOptions, io::{Read, Write}, sync::Once, time::{Duration, Instant}};
     use testing::stuff::max_test_duration::TestDuration;
     use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
-
-    use crate::{cache::Cache, field::Field, fields};
+    use crate::{cache::Cache, fields};
     ///
     ///
     static INIT: Once = Once::new();
