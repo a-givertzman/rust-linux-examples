@@ -79,7 +79,7 @@ impl<T: Num + PartialOrd + Copy + Display + Encode + Decode<()>> Cache<T> {
         let requested_keys: Vec<String> = args.iter().map(|(k, _)| k.to_owned().into()).collect();
         let keys: Vec<String> = self.fields
             .keys()
-            .filter(|key| requested_keys.contains(key)).cloned().collect();
+            .filter(|key| !requested_keys.contains(key)).cloned().collect();
         // Collects pairs groupped by them indexes
         for (key, val) in args {
             match self.fields.get(key.to_owned()) {
