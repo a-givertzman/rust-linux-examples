@@ -37,13 +37,13 @@ impl<T: Num + PartialOrd + Copy + Zero> Pair<T> {
     ///
     /// Returns true if other intersects with
     fn intersects(&self, other: Self) -> bool {
-        if self.lower <= other.lower {
-            self.upper >= other.lower &&
-            self.upper <= other.upper
-        } else {
-            self.lower <= other.upper &&
-            self.upper >= other.upper
+        if (self.lower < other.lower) & (self.upper <= other.lower){
+            return false
         }
+        if (self.lower >= other.upper) & (self.upper > other.upper){
+            return false
+        }
+        true
         // self.lower == other.lower &&
         // self.upper == other.upper
     }
