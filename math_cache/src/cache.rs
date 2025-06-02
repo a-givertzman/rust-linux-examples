@@ -94,7 +94,11 @@ impl<T: Num + PartialOrd + Copy + Display + Encode + Decode<()> + Debug> Cache<T
                 None => log::warn!("Cache.get | Requested key `{key}` - is not found"),
             }
         }
-        log::debug!("Cache.get | pairs: {:?}", pairs);
+        log::debug!("Cache.get | pairs");
+        for ((lo, up), p) in &pairs {
+            let p: Vec<(&String, T)> = p.iter().map(|(k, p)| (k, p.val)).collect();
+            log::debug!("\t ({lo}, {up}): {:?}", p);
+        }
         // If on tuple of indexes number of pairs equals to number of requested args => match is found
         for ((lo, up), p) in pairs {
             if p.len() == args.len() {

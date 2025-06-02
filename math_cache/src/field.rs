@@ -46,12 +46,23 @@ impl<T: Num + PartialOrd + Copy + Display> Field<T> {
         //         result.push(Pair::with(0, 1, *first));
         //     }
         // }
-        for idx in 0..(self.values.len() -1) {
-            let value = self.values[idx];
-            let next = self.values[idx + 1];
-            if (val >= value) & (val <= next) | (val <= value) & (val >= next) {
+        let mut prev = T::zero();
+        let mut next = T::zero();
+        for (i, win) in self.values[..self.values.len() - 1].windows(2).enumerate() {
+            prev = win[0];
+            next = win[1];
+            if Self::contains(val, prev, next) {
                 result.push(
-                    Pair::with(idx, idx + 1, val)
+                    Pair::with(i, i + 1, val)
+                );
+            }
+        }
+        if let Some(next) = self.values.last() {
+            let len = self.values.len();
+            let prev = self.values[len -2];
+            if Self::contains(val, prev,*next) {
+                result.push(
+                    Pair::with(len - 2, len - 1, val)
                 );
             }
         }
@@ -63,6 +74,24 @@ impl<T: Num + PartialOrd + Copy + Display> Field<T> {
         // }
         // log::debug!("Field.binary_search | mid: {mid}");
         result
+    }
+    ///
+    /// Contains float value
+    fn contains(val: T, prev: T, next: T) -> bool {
+        match prev.partial_cmp(&next) {
+            Some(cmp) => match cmp {
+                Ordering::Less => {
+                    (prev..next).contains(&val)
+                }
+                Ordering::Equal => {
+                    val == prev
+                }
+                Ordering::Greater => {
+                    (next..prev).contains(&val)
+                }
+            },
+            None => false,
+        }
     }
     ///
     /// Returns value by it's index
@@ -122,8 +151,27 @@ mod field {
         let test_data = [
             (01,
                 0.00,
+                //    0    1    2    3    4    5    6    7    8
                 vec![0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7],
                 vec![Pair::with(0, 1, 0.00)],
+            ),
+            (101,
+                0.00,
+                //    0    1    2    3    4    5    6    7    8
+                vec![0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1, 0.0],
+                vec![Pair::with(6, 7, 0.00)],
+            ),
+            (102,
+                0.05,
+                //    0    1    2    3    4    5    6    7    8
+                vec![0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1, 0.0],
+                vec![Pair::with(6, 7, 0.05)],
+            ),
+            (103,
+                0.15,
+                //    0    1    2    3    4    5    6    7    8
+                vec![0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1, 0.0],
+                vec![Pair::with(5, 6, 0.15)],
             ),
             (02,
                 0.15,
@@ -175,6 +223,11 @@ mod field {
                 //    0    1    2    3    4    5    6    7    8
                 vec![0.0, 0.1, 0.2, 0.1, 0.0, 0.1, 0.2, 0.1, 0.0],
                 vec![Pair::with(1, 2, 0.15), Pair::with(2, 3, 0.15), Pair::with(5, 6, 0.15), Pair::with(6, 7, 0.15)],
+            ),
+            (12,
+                0.2,
+                vec![0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7],
+                vec![Pair::with(2, 3, 0.2)],
             ),
         ];
         for (step, val, vals, target) in test_data {
