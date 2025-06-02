@@ -1,4 +1,4 @@
-use std::{collections::HashMap, fmt::Display, fs::OpenOptions, io::{Read, Write}, path::Path};
+use std::{collections::HashMap, fmt::{Debug, Display}, fs::OpenOptions, io::{Read, Write}, path::Path};
 use indexmap::IndexMap;
 use num::Num;
 use sal_core::{dbg::Dbg, error::Error};
@@ -13,7 +13,7 @@ pub struct Cache<T> {
 }
 //
 //
-impl<T: Num + PartialOrd + Copy + Display + Encode + Decode<()>> Cache<T> {
+impl<T: Num + PartialOrd + Copy + Display + Encode + Decode<()> + Debug> Cache<T> {
     ///
     /// Returns [Field] new instance
     pub fn new(parent: impl Into<String>, fields: impl Into<IndexMap<String, Vec<T>>>, exclude: Vec<usize>) -> Self {
@@ -94,6 +94,7 @@ impl<T: Num + PartialOrd + Copy + Display + Encode + Decode<()>> Cache<T> {
                 None => log::warn!("Cache.get | Requested key `{key}` - is not found"),
             }
         }
+        log::debug!("Cache.get | pairs: {:?}", pairs);
         // If on tuple of indexes number of pairs equals to number of requested args => match is found
         for ((lo, up), p) in pairs {
             if p.len() == args.len() {

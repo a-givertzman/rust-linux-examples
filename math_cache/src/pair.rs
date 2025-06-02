@@ -56,7 +56,7 @@ mod pair {
     use sal_core::dbg::Dbg;
     use testing::stuff::max_test_duration::TestDuration;
     use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
-    use crate::{field::Field, pair::Pair};
+    use crate::pair::Pair;
     ///
     ///
     static INIT: Once = Once::new();
