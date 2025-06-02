@@ -72,7 +72,7 @@ mod pair {
     ///  - ...
     fn init_each() -> () {}
     ///
-    /// Testing `extremums`
+    /// Testing `intersect`
     #[test]
     fn intersects() {
         DebugSession::init(LogLevel::Debug, Backtrace::Short);
