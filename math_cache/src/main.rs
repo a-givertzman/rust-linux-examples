@@ -1,6 +1,7 @@
 mod cache;
 mod field;
 mod pair;
+mod tests;
 
 use std::time::Instant;
 use field::Field;
