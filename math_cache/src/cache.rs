@@ -50,7 +50,7 @@ impl<T: Num + PartialOrd + Ord + Copy + Display + Encode + Decode<()>> Cache<T> 
     ///
     /// Stores data into the file
     pub fn store<P: AsRef<Path>>(self, path: P) -> Result<(), Error> {
-        let error = Error::new(&self.dbg, "load");
+        let error = Error::new(&self.dbg, "store");
         let cache = _Cache {
             fields: self.fields.iter().map(|(k, f)| (k.to_owned(), _Field { values: f.values() })).collect(),
             exclude: self.exclude.clone(),
