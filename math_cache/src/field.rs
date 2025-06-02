@@ -58,6 +58,15 @@ impl<T: Num + PartialOrd + Copy + Display> Field<T> {
         result
     }
     ///
+    /// Returns value by it's index
+    /// 
+    /// Unsafe method, be sure index in range
+    /// 
+    /// ## Panics if index out of range
+    pub fn get_by_idx(&self, index: usize) -> T {
+        self.values[index]
+    }
+    ///
     /// Returns a sign of the specified value
     fn sign(val: T, zero: T) -> Ordering {
         if val == zero {

@@ -12,7 +12,7 @@ pub struct Cache<T> {
 }
 //
 //
-impl<T: Num + PartialOrd + Copy + Display> Cache<T> {
+impl<T: Num + PartialOrd + Ord + Copy + Display> Cache<T> {
     ///
     /// Returns [Field] new instance
     pub fn new(parent: impl Into<String>, fields: IndexMap<String, Vec<T>>, exclude: Vec<usize>) -> Self {
@@ -29,8 +29,8 @@ impl<T: Num + PartialOrd + Copy + Display> Cache<T> {
     ///
     /// Returns the row's, associated with requested arguments
     pub fn get(&self, args: &[(String, T)]) -> Vec<Vec<(String, T)>> {
-        let mut pairs: IndexMap<(usize, usize), Vec<(String, Pair<T>)>> = IndexMap::new();
         let mut result = vec![];
+        let mut pairs: IndexMap<(usize, usize), Vec<(String, Pair<T>)>> = IndexMap::new();
         let requested_keys: Vec<&String> = args.iter().map(|(k, _)| k).collect();
         let keys: Vec<String> = self.fields
             .keys()
@@ -65,6 +65,24 @@ impl<T: Num + PartialOrd + Copy + Display> Cache<T> {
     /// - pairs - values found in associated fields
     /// - keys - keys of fields to be interpolated
     fn interpolation(&self, lower: usize, upper: usize, pairs: Vec<(String, Pair<T>)>, keys: &Vec<String>) -> Vec<(String, T)> {
-        vec![]
+        let mut result = vec![];
+
+        // Коэффициент из первого найденого значения
+        let ratio = pairs.first().unwrap().1.ratio;
+        
+        // достаем поля (столбики) из которых надо взять значения
+        for key in keys {
+            if let Some(field) = self.fields.get(key) {
+                // lower value from field
+                let lo = field.get_by_idx(lower);
+                // upper value from field
+                let up = field.get_by_idx(upper);
+                let delta = up - lo;
+                let base = [lo, up].iter().min().unwrap().to_owned();
+                let interpolation =  base + delta * ratio;
+                result.push((key.to_owned(), interpolation));
+            }
+        }
+        result
     }
 }
