@@ -27,8 +27,15 @@ impl<T: Num + PartialOrd + Ord + Copy + Display> Cache<T> {
         }
     }
     ///
-    /// Loads data from path
-    pub fn load<P: AsRef<Path>>(self, path: P) -> Result<(), Error> {
+    /// Loads data from the file
+    pub fn load<P: AsRef<Path>>(parent: impl Into<String>, path: P) -> Result<Self, Error> {
+        let dbg = Dbg::new(parent, "Cache");
+        let error = Error::new(&dbg, "load");
+        Err(error.err("Not implemented"))
+    }
+    ///
+    /// Stores data into the file
+    pub fn store<P: AsRef<Path>>(self, path: P) -> Result<(), Error> {
         let error = Error::new(&self.dbg, "load");
         Err(error.err("Not implemented"))
     }
