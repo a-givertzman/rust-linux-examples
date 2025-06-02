@@ -1,4 +1,5 @@
 use std::{cmp::Ordering, fmt::Display};
+use bincode::{Decode, Encode};
 use num::Num;
 use sal_core::{
     log::{dbg, warn},
@@ -8,6 +9,7 @@ use crate::pair::Pair;
 
 ///
 /// Stores indexed values for cache
+#[derive(Clone)]
 pub struct Field<T> {
     dbg: Dbg,
     values: Vec<T>,
@@ -28,6 +30,11 @@ impl<T: Num + PartialOrd + Copy + Display> Field<T> {
     #[dbg()]
     pub fn get(&self, val: T) -> Vec<Pair<T>> {
         self.search(val)
+    }
+    ///
+    /// Returns copy of all containing values
+    pub fn values(&self) -> Vec<T> {
+        self.values.clone()
     }
     ///
     /// Returns [Pair]s containing requested value

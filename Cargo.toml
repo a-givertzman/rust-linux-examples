@@ -29,6 +29,7 @@ sal-core = { git = "https://github.com/a-givertzman/rust-sal-core.git", tag = "0
 serde = { version = "^1.0", features = ["derive"] }
 serde_yaml = "^0.9"
 serde_json = "^1.0"
+bincode = "^2.0"
 #
 # Collections
 indexmap = "^2.9"

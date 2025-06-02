@@ -15,4 +15,4 @@ rand = "^0.9"
 
 kanal = "0.1"
 
-bincode = "^2.0"
+bincode = { workspace = true }

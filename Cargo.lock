@@ -866,6 +866,7 @@ dependencies = [
 name = "math_cache"
 version = "0.1.0"
 dependencies = [
+ "bincode",
  "debugging",
  "env_logger",
  "indexmap",

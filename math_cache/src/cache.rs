@@ -1,8 +1,9 @@
-use std::{fmt::Display, path::Path};
+use std::{collections::HashMap, fmt::Display, path::Path};
 use indexmap::IndexMap;
 use num::Num;
 use sal_core::{dbg::Dbg, error::Error};
 use crate::{field::Field, pair::Pair};
+use bincode::{Encode, Decode};
 ///
 /// 
 pub struct Cache<T> {
@@ -36,6 +37,19 @@ impl<T: Num + PartialOrd + Ord + Copy + Display> Cache<T> {
     ///
     /// Stores data into the file
     pub fn store<P: AsRef<Path>>(self, path: P) -> Result<(), Error> {
+        #[derive(Encode, Decode)]
+        struct _Field<T> {
+            values: Vec<T>,
+        }
+        #[derive(Encode, Decode)]
+        struct _Cache<T> {
+            fields: HashMap<String, _Field<T>>,
+            exclude: Vec<usize>,
+        }
+        let cache = _Cache {
+            fields: self.fields.iter().map(|(k, f)| (k.to_owned(), _Field { values: f.values() })).collect(),
+            exclude: self.exclude.clone(),
+        };
         let error = Error::new(&self.dbg, "load");
         Err(error.err("Not implemented"))
     }
