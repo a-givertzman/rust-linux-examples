@@ -1,7 +1,7 @@
-use std::fmt::Display;
+use std::{fmt::Display, path::Path};
 use indexmap::IndexMap;
 use num::Num;
-use sal_core::dbg::Dbg;
+use sal_core::{dbg::Dbg, error::Error};
 use crate::{field::Field, pair::Pair};
 ///
 /// 
@@ -25,6 +25,12 @@ impl<T: Num + PartialOrd + Ord + Copy + Display> Cache<T> {
             fields,
             exclude,
         }
+    }
+    ///
+    /// Loads data from path
+    pub fn load<P: AsRef<Path>>(self, path: P) -> Result<(), Error> {
+        let error = Error::new(&self.dbg, "load");
+        Err(error.err("Not implemented"))
     }
     ///
     /// Returns the row's, associated with requested arguments
