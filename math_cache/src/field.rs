@@ -10,7 +10,6 @@ use crate::pair::Pair;
 /// Stores indexed values for cache
 pub struct Field<T> {
     dbg: Dbg,
-    extremums: Vec<Pair<T>>,
     values: Vec<T>,
 }
 //
@@ -19,11 +18,8 @@ impl<T: Num + PartialOrd + Copy + Display> Field<T> {
     ///
     /// Returns [Field] new instance
     pub fn new(parent: impl Into<String>, values: Vec<T>) -> Self {
-        let (_, extremums) = Self::extremums(values.clone(), T::zero());
         Self {
             dbg: Dbg::new(parent, "Field"),
-            extremums,
-            // sequences,
             values,
         }
     }
@@ -31,117 +27,35 @@ impl<T: Num + PartialOrd + Copy + Display> Field<T> {
     /// Returns [Pair]'s contains the requested value
     #[dbg()]
     pub fn get(&self, val: T) -> Vec<Pair<T>> {
+        self.search(val)
+    }
+    ///
+    /// Returns [Pair]s containing requested value
+    #[dbg()]
+    fn search(&self, val: T) -> Vec<Pair<T>> {
         let mut result = vec![];
-        for pair in &self.extremums {
-            let sequence = &self.values[pair.lower..=pair.upper];
-            if let Some(found) = Self::binary_search(sequence, val) {
-                result.push(found);
+        // if let Some(first) = self.values.first() {
+        //     if val < *first {
+        //         result.push(Pair::with(0, 1, *first));
+        //     }
+        // }
+        for idx in 0..(self.values.len() -1) {
+            let value = self.values[idx];
+            let next = self.values[idx + 1];
+            if (val >= value) & (val <= next) | (val <= value) & (val >= next) {
+                result.push(
+                    Pair::with(idx, idx + 1, val)
+                );
             }
         }
+        // if let Some(last) = self.values.last() {
+        //     if val > *last {
+        //         let len = self.values.len() -1;
+        //         result.push(Pair::with(len -1, len, *last));
+        //     }
+        // }
+        // log::debug!("Field.binary_search | mid: {mid}");
         result
-    }
-    ///
-    /// Returns interpolated value
-    fn interpolation(lower: T, upper: T, val: T) -> T {
-        val
-    }
-    ///
-    /// Returns value if found in the sequence
-    /// - sequence must be sorted
-    /// - if `val` is less then first, returns first pair
-    /// - if `val` is grater then last, returns last pair
-    fn binary_search(sequence: &[T], val: T) -> Option<Pair<T>> {
-        if let Some(first) = sequence.first() {
-            if val <= *first {
-                return Some(Pair::with(0, 1, *first));
-            }
-        }
-        if let Some(last) = sequence.last() {
-            if val >= *last {
-                let len = sequence.len() -1;
-                return Some(Pair::with(len -1, len, *last));
-            }
-        }
-        let mut len = sequence.len();
-        let mut base = 0usize;
-        let mut halh;
-        while len > 1 {
-            halh = len / 2;
-            let mid = base + halh;
-            log::debug!("Field.binary_search | mid: {mid}");
-            match val.partial_cmp(&sequence[mid]) {
-                Some(cmp) => {
-                    match cmp {
-                        Ordering::Less | Ordering::Equal => {
-                            if mid > 0 {
-                                if val >= sequence[mid - 1] {
-                                    return Some(Pair::with(mid -1, mid, val));
-                                }
-                            }
-                        }
-                        // Ordering::Equal => {
-                        //     if mid > 0 {
-                        //         return Some(Pair::with(mid -1, mid, val));
-                        //     } else if mid < (sequence.len() - 1) {
-                        //         return Some(Pair::with(mid, mid +1, val));
-                        //     } else {
-                        //         return Some(Pair::with(mid, mid, val));
-                        //     }
-                        // }
-                        Ordering::Greater => {
-                            if mid < (sequence.len() - 1) {
-                                if val <= sequence[mid + 1] {
-                                    return Some(Pair::with(mid, mid +1, val));
-                                }
-                            }
-                            base = mid;
-                        }
-                    }
-                    len -= halh;
-                }
-                None => {
-                    log::warn!("Field.binary_search | val {val} - is not found");
-                    return None;
-                }
-            }
-        }
-        None
-    }
-    ///
-    /// Returns the extremums of the input sequence,
-    /// based on the sign of the first differential
-    fn extremums(values: Vec<T>, zero: T) -> (Vec<Vec<T>>, Vec<Pair<T>>) {
-        let mut pairs = vec![];
-        let mut result = vec![];
-        let mut prev: Option<T> = None;
-        let mut prev_sign = None;
-        let mut sequence = vec![];
-        let mut lower = 0;
-        let mut upper = 0;
-        for (idx, val) in values.iter().enumerate() {
-            if let Some(prev) = prev {
-                let sign = Self::sign(*val - prev, zero);
-                if let Some(prev_sign) = prev_sign {
-                    if (prev_sign != Ordering::Equal) & (sign != Ordering::Equal) {
-                        if prev_sign != sign {
-                            pairs.push(Pair::new(lower, upper));
-                            lower = idx;
-                            result.push(sequence);
-                            sequence = vec![];
-                        }
-                    }
-                }
-                prev_sign = Some(sign);
-            }
-            upper = idx;
-            prev = Some(*val);
-            sequence.push(*val);
-        }
-        if !sequence.is_empty() {
-            pairs.push(Pair::new(lower, upper));
-            result.push(sequence);
-        }
-        (result, pairs)
     }
     ///
     /// Returns a sign of the specified value
@@ -179,101 +93,13 @@ mod field {
     ///  - ...
     fn init_each() -> () {}
     ///
-    /// Testing `extremums`
+    /// Testing `search`
     #[test]
-    fn extremums() {
+    fn search() {
         DebugSession::init(LogLevel::Debug, Backtrace::Short);
         init_once();
         init_each();
-        let dbg = Dbg::own("field_extremums");
-        log::debug!("\n{}", dbg);
-        let test_duration = TestDuration::new(&dbg, Duration::from_secs(10));
-        test_duration.run().unwrap();
-        let test_data = [
-            (01,
-                vec![0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7],
-                vec![vec![0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7]],
-                vec![Pair::new(0, 7)],
-            ),
-            (02,
-                vec![-0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7],
-                vec![vec![0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7]],
-                vec![Pair::new(0, 7)],
-            ),
-            (03,
-                vec![-0.1, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7],
-                vec![vec![-0.1, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7]],
-                vec![Pair::new(0, 7)],
-            ),
-            (04,
-                vec![-0.1, -0.1, -0.2, -0.3, -0.4, -0.5, -0.6, 0.7],
-                vec![vec![-0.1, -0.1, -0.2, -0.3, -0.4, -0.5, -0.6], vec![0.7]],
-                vec![Pair::new(0, 6), Pair::new(7, 7)],
-            ),
-            (04,
-                vec![0.1, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, -0.7],
-                vec![vec![0.1, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6], vec![-0.7]],
-                vec![Pair::new(0, 6), Pair::new(7, 7)],
-            ),
-            (04,
-                vec![0.1, 0.1, -0.2, -0.3, -0.4, -0.5, -0.6, 0.7],
-                vec![vec![0.1, 0.1, -0.2, -0.3, -0.4, -0.5, -0.6], vec![0.7]],
-                vec![Pair::new(0, 6), Pair::new(7, 7)],
-            ),
-            (05,
-                vec![0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, -0.8],
-                vec![vec![0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7], vec![-0.8]],
-                vec![Pair::new(0, 7), Pair::new(8, 8)],
-            ),
-            (06,
-                vec![0.0, 0.1, 0.2, 0.3, 0.2, 0.1, 0.0, -0.1],
-                vec![vec![0.0, 0.1, 0.2, 0.3], vec![0.2, 0.1, 0.0, -0.1]],
-                vec![Pair::new(0, 3), Pair::new(4, 7)],
-            ),
-            (07,
-                vec![0.0, -0.1, -0.2, -0.1, 0.0, 0.1, 0.0, -0.1],
-                vec![vec![0.0, -0.1, -0.2], vec![-0.1, 0.0, 0.1], vec![0.0, -0.1]],
-                vec![Pair::new(0, 2), Pair::new(3, 5), Pair::new(6, 7)],
-            ),
-            (08,
-                vec![0.0],
-                vec![vec![0.0]],
-                vec![Pair::new(0, 0)],
-            ),
-            (09,
-                vec![0.0, 0.1],
-                vec![vec![0.0, 0.1]],
-                vec![Pair::new(0, 1)],
-            ),
-            (10,
-                vec![0.0, -0.1],
-                vec![vec![0.0, -0.1]],
-                vec![Pair::new(0, 1)],
-            ),
-        ];
-        for (step, vals, target_sequences, target_extermums) in test_data {
-            let time = Instant::now();
-            let field = Field::new(&dbg, vals);
-            let result = field.extremums.clone();
-            let target = target_extermums;
-            // log::debug!("step {}  elapsed: {:?} \nresult: {:?}\ntarget: {:?}", step, time.elapsed(), field.extremums, target);
-            assert!(result == target, "step {} \nresult: {:?}\ntarget: {:?}", step, result, target);
-            let sequences: Vec<Vec<f64>> = result.iter().map(|pair| field.values[pair.lower..=pair.upper].to_vec()).collect();
-            let result = sequences.clone();
-            let target = target_sequences;
-            assert!(result == target, "step {} \nresult: {:?}\ntarget: {:?}", step, result, target);
-            log::debug!("step {}  elapsed: {:?} \nresult: {:?}\nresult: {:?}\ntarget: {:?}", step, time.elapsed(), field.extremums, sequences, target);
-        }
-        test_duration.exit();
-    }
-    ///
-    /// Testing `binary_search`
-    #[test]
-    fn binary_search() {
-        DebugSession::init(LogLevel::Debug, Backtrace::Short);
-        init_once();
-        init_each();
-        let dbg = Dbg::own("field_binary_search");
+        let dbg = Dbg::own("field_search");
         log::debug!("\n{}", dbg);
         let test_duration = TestDuration::new(&dbg, Duration::from_secs(10));
         test_duration.run().unwrap();
@@ -281,60 +107,66 @@ mod field {
             (01,
                 0.00,
                 vec![0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7],
-                Some(Pair::with(0, 1, 0.00)),
+                vec![Pair::with(0, 1, 0.00)],
             ),
             (02,
                 0.15,
                 vec![0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7],
-                Some(Pair::with(1, 2, 0.15)),
+                vec![Pair::with(1, 2, 0.15)],
             ),
             (03,
                 0.05,
                 vec![0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7],
-                Some(Pair::with(0, 1, 0.05)),
+                vec![Pair::with(0, 1, 0.05)],
             ),
             (04,
                 0.01,
                 vec![0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7],
-                Some(Pair::with(0, 1, 0.01)),
+                vec![Pair::with(0, 1, 0.01)],
             ),
             (05,
                 0.55,
                 vec![0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7],
-                Some(Pair::with(5, 6, 0.55)),
+                vec![Pair::with(5, 6, 0.55)],
             ),
             (06,
                 0.55,
                 vec![0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7],
-                Some(Pair::with(5, 6, 0.55)),
+                vec![Pair::with(5, 6, 0.55)],
             ),
             (07,
                 0.65,
                 vec![0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7],
-                Some(Pair::with(6, 7, 0.65)),
+                vec![Pair::with(6, 7, 0.65)],
             ),
-            (08,
-                -0.10,
-                vec![0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7],
-                Some(Pair::with(0, 1, 0.00)),
-            ),
+            // (08,
+            //     -0.10,
+            //     vec![0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7],
+            //     vec![Pair::with(0, 1, 0.00)],
+            // ),
             (09,
                 0.70,
                 vec![0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7],
-                Some(Pair::with(6, 7, 0.70)),
+                vec![Pair::with(6, 7, 0.70)],
             ),
-            (10,
-                0.80,
-                vec![0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7],
-                Some(Pair::with(6, 7, 0.70)),
+            // (10,
+            //     0.80,
+            //     vec![0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7],
+            //     vec![Pair::with(6, 7, 0.70)],
+            // ),
+            (11,
+                0.15,
+                //    0    1    2    3    4    5    6    7    8
+                vec![0.0, 0.1, 0.2, 0.1, 0.0, 0.1, 0.2, 0.1, 0.0],
+                vec![Pair::with(1, 2, 0.15), Pair::with(2, 3, 0.15), Pair::with(5, 6, 0.15), Pair::with(6, 7, 0.15)],
             ),
         ];
         for (step, val, vals, target) in test_data {
             let time = Instant::now();
-            let result = Field::binary_search(&vals, val);
+            let field = Field::new(&dbg, vals);
+            let result = field.search(val);
             log::debug!("step {}  elapsed: {:?} \nval: {:?}\nresult: {:?}\ntarget: {:?}", step, time.elapsed(), val, result, target);
             assert!(result == target, "step {} \nresult: {:?}\ntarget: {:?}", step, result, target);
-        }
-        test_duration.exit();
+        }        test_duration.exit();
     }
 }
