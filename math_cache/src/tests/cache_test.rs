@@ -37,25 +37,29 @@ mod cache {
         test_duration.run().unwrap();
         let path = "src/tests/cache.dat";
         let fields = fields!{
-            field1: vec![0.0, 0.1,  0.2,  0.3,  0.4,  0.5,  0.6,  0.7],
-            field2: vec![0.0, 0.2,  0.4,  0.6,  0.8,  1.0,  1.2,  1.4],
-            field3: vec![0.0, 0.4,  0.8,  1.2,  1.6,  2.0,  2.4,  2.8],
-            field4: vec![0.0, 0.8,  1.6,  2.4,  3.2,  4.0,  4.8,  5.6],
-            field5: vec![0.0, 1.6,  3.2,  4.8,  6.4,  8.0,  9.6, 11.2],
-            field6: vec![0.0, 3.2,  6.4,  9.6, 12.8, 16.0, 19.2, 22.4],
-            field7: vec![0.0, 6.4, 12.8, 19.2, 25.6, 32.0, 38.4, 44.8]
+            field1: vec![0.0,  0.1,  0.2,  0.3,  0.4,  0.5,  0.6,  0.7],
+            field2: vec![0.0,  0.2,  0.4,  0.6,  0.8,  1.0,  1.2,  1.4],
+            field3: vec![0.0,  0.4,  0.8,  1.2,  1.6,  2.0,  2.4,  2.8],
+            field4: vec![0.0,  0.8,  1.6,  2.4,  3.2,  4.0,  4.8,  5.6],
+            field5: vec![0.0,  1.6,  3.2,  4.8,  6.4,  8.0,  9.6, 11.2],
+            field6: vec![0.0,  3.2,  6.4,  9.6, 12.8, 16.0, 19.2, 22.4],
+            field7: vec![0.0,  6.4, 12.8, 19.2, 25.6, 32.0, 38.4, 44.8],
+            field8: vec![0.0, 12.8, 25.6, 38.4, 51.2, 64.0, 76.8, 89.6]
         };
-        let cache = Cache::new(&dbg, fields.clone(), vec![4, 7, 12]);
-        cache.store(path).unwrap();
-        let mut file = OpenOptions::new().read(true).open(path).unwrap();
-        let mut buf = vec![];
-        let time = Instant::now();
-        file.read_to_end(&mut buf).unwrap();
-        let (cache, _): (_Cache<f64>, _) = bincode::decode_from_slice(&buf, bincode::config::standard()).unwrap();
-        let target = fields;
-        let result: IndexMap<String, Vec<f64>> = cache.fields.iter().map(|(k, f)| (k.to_owned(), f.values.to_owned())).collect();
-        log::debug!("elapsed: {:?} \nresult: {:?}\ntarget: {:?}", time.elapsed(), result, target);
-        assert!(result == target, "elapsed: {:?} \nresult: {:?}\ntarget: {:?}", time.elapsed(), result, target);
+        for _ in 0..3 {
+            let time = Instant::now();
+            let cache = Cache::new(&dbg, fields.clone(), vec![4, 7, 12]);
+            cache.store(path).unwrap();
+            let elapsed = time.elapsed();
+            let mut file = OpenOptions::new().read(true).open(path).unwrap();
+            let mut buf = vec![];
+            file.read_to_end(&mut buf).unwrap();
+            let (cache, _): (_Cache<f64>, _) = bincode::decode_from_slice(&buf, bincode::config::standard()).unwrap();
+            let target = fields.clone();
+            let result: IndexMap<String, Vec<f64>> = cache.fields.iter().map(|(k, f)| (k.to_owned(), f.values.to_owned())).collect();
+            log::debug!("elapsed: {:?} \nresult: {:?}\ntarget: {:?}", time.elapsed(), result, target);
+            assert!(result == target, "elapsed: {:?} \nresult: {:?}\ntarget: {:?}", elapsed, result, target);
+        }
         test_duration.exit();
     }
     ///
