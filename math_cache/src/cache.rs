@@ -97,8 +97,10 @@ impl<T: Num + PartialOrd + Copy + Display + Encode + Decode<()>> Cache<T> {
         // If on tuple of indexes number of pairs equals to number of requested args => match is found
         for ((lo, up), p) in pairs {
             if p.len() == args.len() {
-                let r = self.interpolation(lo, up, p, &keys);
-                result.push(r);
+                let mut origin: Vec<(String, T)> = p.iter().map(|(k, v)| (k.to_owned(), v.val)).collect();
+                let interpolated = self.interpolation(lo, up, p, &keys);
+                origin.extend(interpolated);
+                result.push(origin);
             }
         }
         result
