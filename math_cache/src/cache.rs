@@ -1,4 +1,4 @@
-use std::{collections::HashMap, fmt::Display, fs::OpenOptions, io::Write, path::Path};
+use std::{collections::HashMap, fmt::Display, fs::OpenOptions, io::{Read, Write}, path::Path};
 use indexmap::IndexMap;
 use num::Num;
 use sal_core::{dbg::Dbg, error::Error};
@@ -13,7 +13,7 @@ pub struct Cache<T> {
 }
 //
 //
-impl<T: Num + PartialOrd + Ord + Copy + Display + Encode> Cache<T> {
+impl<T: Num + PartialOrd + Ord + Copy + Display + Encode + Decode<()>> Cache<T> {
     ///
     /// Returns [Field] new instance
     pub fn new(parent: impl Into<String>, fields: IndexMap<String, Vec<T>>, exclude: Vec<usize>) -> Self {
@@ -32,28 +32,32 @@ impl<T: Num + PartialOrd + Ord + Copy + Display + Encode> Cache<T> {
     pub fn load<P: AsRef<Path>>(parent: impl Into<String>, path: P) -> Result<Self, Error> {
         let dbg = Dbg::new(parent, "Cache");
         let error = Error::new(&dbg, "load");
-        Err(error.err("Not implemented"))
+        let mut file = OpenOptions::new()
+            .read(true)
+            .open(path)
+            .map_err(|e| error.pass(e.to_string()))?;
+        let mut buf = vec![];
+        file.read_to_end(&mut buf)
+            .map_err(|e| error.pass(e.to_string()))?;
+        let (cache, _): (_Cache<T>, _) = bincode::decode_from_slice(&buf, bincode::config::standard())
+            .map_err(|e| error.pass(e.to_string()))?;
+        Ok(Self {
+            fields: cache.fields.iter().map(|(k, f)| (k.to_owned(), Field::new(&dbg, f.values.to_owned()))).collect(),
+            exclude: cache.exclude,
+            dbg,
+        })
     }
     ///
     /// Stores data into the file
     pub fn store<P: AsRef<Path>>(self, path: P) -> Result<(), Error> {
         let error = Error::new(&self.dbg, "load");
-        #[derive(Encode, Decode)]
-        struct _Field<T> {
-            values: Vec<T>,
-        }
-        #[derive(Encode, Decode)]
-        struct _Cache<T> {
-            fields: HashMap<String, _Field<T>>,
-            exclude: Vec<usize>,
-        }
         let cache = _Cache {
             fields: self.fields.iter().map(|(k, f)| (k.to_owned(), _Field { values: f.values() })).collect(),
             exclude: self.exclude.clone(),
         };
-        let mut file = OpenOptions
-            ::new()
+        let mut file = OpenOptions::new()
             .write(true)
+            .create(true)
             .truncate(true)
             .open(path)
             .map_err(|e| error.pass(e.to_string()))?;
@@ -121,4 +125,15 @@ impl<T: Num + PartialOrd + Ord + Copy + Display + Encode> Cache<T> {
         }
         result
     }
+}
+///
+/// Used for binarisation to be stored / loaded
+#[derive(Encode, Decode)]
+struct _Field<T> {
+    values: Vec<T>,
+}
+#[derive(Encode, Decode)]
+struct _Cache<T> {
+    fields: HashMap<String, _Field<T>>,
+    exclude: Vec<usize>,
 }
