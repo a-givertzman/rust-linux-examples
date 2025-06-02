@@ -23,6 +23,63 @@ mod cache {
     ///  - ...
     fn init_each() -> () {}
     ///
+    /// Testing `get` method
+    #[test]
+    fn get() {
+        DebugSession::init(LogLevel::Debug, Backtrace::Short);
+        init_once();
+        init_each();
+        let dbg = Dbg::own("cache-get");
+        log::debug!("\n{}", dbg);
+        let test_duration = TestDuration::new(&dbg, Duration::from_secs(10));
+        test_duration.run().unwrap();
+        let fields = fields!{
+            field1: vec![0.0,  0.1,  0.2,  0.3,  0.4,  0.5,  0.6,  0.7],
+            field2: vec![0.0,  0.2,  0.4,  0.6,  0.8,  1.0,  1.2,  1.4],
+            field3: vec![0.0,  0.4,  0.8,  1.2,  1.6,  2.0,  2.4,  2.8],
+            field4: vec![0.0,  0.8,  1.6,  2.4,  3.2,  4.0,  4.8,  5.6],
+            field5: vec![0.0,  1.6,  3.2,  4.8,  6.4,  8.0,  9.6, 11.2],
+            field6: vec![0.0,  3.2,  6.4,  9.6, 12.8, 16.0, 19.2, 22.4],
+            field7: vec![0.0,  6.4, 12.8, 19.2, 25.6, 32.0, 38.4, 44.8],
+            field8: vec![0.0, 12.8, 25.6, 38.4, 51.2, 64.0, 76.8, 89.6]
+        };
+        let exclude = vec![4, 7, 12];
+        let test_data = [
+            (01, 
+                vec![
+                    ("field1", 0.2),
+                    ("field2", 0.4),
+                    ("field3", 0.8),
+                ],
+                vec![
+                    vec![
+                        ("field1",  0.2),
+                        ("field2",  0.4),
+                        ("field3",  0.8),
+                        ("field3",  1.6),
+                        ("field3",  3.2),
+                        ("field3",  6.4),
+                        ("field3", 12.8),
+                        ("field3", 25.6),
+                    ],
+                ],
+            ),
+
+        ];
+        let cache = Cache::new(&dbg, fields.clone(), exclude);
+        for (step, args, target ) in test_data {
+            let time = Instant::now();
+            let result: Vec<Vec<(String, f64)>> = cache.get(&args);
+            let target: Vec<Vec<(String, f64)>> = target.into_iter().map(|row| {
+                row.into_iter().map(|(k, v)| (k.to_owned(), v)).collect()
+            }).collect();
+            let elapsed = time.elapsed();
+            log::debug!("step {step}   elapsed: {:?} \nresult: {:?}\ntarget: {:?}", time.elapsed(), result, target);
+            assert!(result == target, "step {step}   elapsed: {:?} \nresult: {:?}\ntarget: {:?}", elapsed, result, target);
+        }
+        test_duration.exit();
+    }
+    ///
     /// Testing `store` method
     #[test]
     fn store() {

@@ -73,22 +73,22 @@ impl<T: Num + PartialOrd + Copy + Display + Encode + Decode<()>> Cache<T> {
     }
     ///
     /// Returns the row's, associated with requested arguments
-    pub fn get(&self, args: &[(String, T)]) -> Vec<Vec<(String, T)>> {
+    pub fn get(&self, args: &[(&str, T)]) -> Vec<Vec<(String, T)>> {
         let mut result = vec![];
         let mut pairs: IndexMap<(usize, usize), Vec<(String, Pair<T>)>> = IndexMap::new();
-        let requested_keys: Vec<&String> = args.iter().map(|(k, _)| k).collect();
+        let requested_keys: Vec<String> = args.iter().map(|(k, _)| k.to_owned().into()).collect();
         let keys: Vec<String> = self.fields
             .keys()
             .filter(|key| requested_keys.contains(key)).cloned().collect();
         // Collects pairs sorted by them indexes
         for (key, val) in args {
-            match self.fields.get(key) {
+            match self.fields.get(key.to_owned()) {
                 Some(field) => {
                     for pair in field.get(*val) {
                         pairs
                             .entry((pair.lower, pair.upper))
                             .or_insert(vec![])
-                            .push((key.clone(), pair));
+                            .push((key.to_string(), pair));
                     }
                 }
                 None => log::warn!("Cache.get | Requested key `{key}` - is not found"),
