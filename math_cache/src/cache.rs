@@ -28,6 +28,11 @@ impl<T: Num + PartialOrd + Copy + Display + Encode + Decode<()>> Cache<T> {
         }
     }
     ///
+    /// Returns all containing fields
+    pub fn fields(&self) -> IndexMap<String, Field<T>> {
+        self.fields.clone()
+    }
+    ///
     /// Loads data from the file
     pub fn load<P: AsRef<Path>>(parent: impl Into<String>, path: P) -> Result<Self, Error> {
         let dbg = Dbg::new(parent, "Cache");

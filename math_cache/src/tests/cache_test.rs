@@ -5,7 +5,7 @@ mod cache {
     use indexmap::IndexMap;
     use log::{warn, info, debug};
     use sal_core::dbg::Dbg;
-    use std::{collections::HashMap, fs::OpenOptions, io::Read, sync::Once, time::{Duration, Instant}};
+    use std::{collections::HashMap, fs::OpenOptions, io::{Read, Write}, sync::Once, time::{Duration, Instant}};
     use testing::stuff::max_test_duration::TestDuration;
     use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
 
@@ -35,7 +35,7 @@ mod cache {
         log::debug!("\n{}", dbg);
         let test_duration = TestDuration::new(&dbg, Duration::from_secs(10));
         test_duration.run().unwrap();
-        let path = "src/tests/cache.dat";
+        let path = "src/tests/cache_store.dat";
         let fields = fields!{
             field1: vec![0.0,  0.1,  0.2,  0.3,  0.4,  0.5,  0.6,  0.7],
             field2: vec![0.0,  0.2,  0.4,  0.6,  0.8,  1.0,  1.2,  1.4],
@@ -57,6 +57,54 @@ mod cache {
             let (cache, _): (_Cache<f64>, _) = bincode::decode_from_slice(&buf, bincode::config::standard()).unwrap();
             let target = fields.clone();
             let result: IndexMap<String, Vec<f64>> = cache.fields.iter().map(|(k, f)| (k.to_owned(), f.values.to_owned())).collect();
+            log::debug!("elapsed: {:?} \nresult: {:?}\ntarget: {:?}", time.elapsed(), result, target);
+            assert!(result == target, "elapsed: {:?} \nresult: {:?}\ntarget: {:?}", elapsed, result, target);
+        }
+        test_duration.exit();
+    }
+    ///
+    /// Testing `load` method
+    #[test]
+    fn load() {
+        DebugSession::init(LogLevel::Debug, Backtrace::Short);
+        init_once();
+        init_each();
+        let dbg = Dbg::own("cache-store");
+        log::debug!("\n{}", dbg);
+        let test_duration = TestDuration::new(&dbg, Duration::from_secs(10));
+        test_duration.run().unwrap();
+        let path = "src/tests/cache_load.dat";
+        let fields = fields!{
+            field1: vec![0.0,  0.1,  0.2,  0.3,  0.4,  0.5,  0.6,  0.7],
+            field2: vec![0.0,  0.2,  0.4,  0.6,  0.8,  1.0,  1.2,  1.4],
+            field3: vec![0.0,  0.4,  0.8,  1.2,  1.6,  2.0,  2.4,  2.8],
+            field4: vec![0.0,  0.8,  1.6,  2.4,  3.2,  4.0,  4.8,  5.6],
+            field5: vec![0.0,  1.6,  3.2,  4.8,  6.4,  8.0,  9.6, 11.2],
+            field6: vec![0.0,  3.2,  6.4,  9.6, 12.8, 16.0, 19.2, 22.4],
+            field7: vec![0.0,  6.4, 12.8, 19.2, 25.6, 32.0, 38.4, 44.8],
+            field8: vec![0.0, 12.8, 25.6, 38.4, 51.2, 64.0, 76.8, 89.6]
+        };
+        let exclude = vec![4, 7, 12];
+        for _ in 0..3 {
+            let mut file = OpenOptions::new()
+                .write(true)
+                .create(true)
+                .truncate(true)
+                .open(path).unwrap();
+            let buf = bincode::encode_to_vec(
+                _Cache {
+                    fields: fields.iter().map(|(k, f)| (k.to_owned(), _Field { values: f.to_owned() })).collect(),
+                    exclude: exclude.clone(),
+                },
+                bincode::config::standard(),
+            ).unwrap();
+            file.write_all(&buf).unwrap();
+
+            let time = Instant::now();
+            let cache: Cache<f64> = Cache::load(&dbg, path).unwrap();
+            let elapsed = time.elapsed();
+            let target = fields.clone();
+            let result: IndexMap<String, Vec<f64>> = cache.fields().iter().map(|(k, f)| (k.to_owned(), f.values())).collect();
             log::debug!("elapsed: {:?} \nresult: {:?}\ntarget: {:?}", time.elapsed(), result, target);
             assert!(result == target, "elapsed: {:?} \nresult: {:?}\ntarget: {:?}", elapsed, result, target);
         }
