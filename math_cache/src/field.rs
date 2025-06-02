@@ -60,7 +60,7 @@ impl<T: Num + PartialOrd + Copy + Display> Field<T> {
         if let Some(next) = self.values.last() {
             let len = self.values.len();
             let prev = self.values[len -2];
-            if Self::contains(val, prev,*next) {
+            if Self::contains(val, prev,*next) | (val == prev) | (val == *next) {
                 result.push(
                     Pair::with(len - 2, len - 1, val)
                 );
