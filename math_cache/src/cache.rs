@@ -1,4 +1,4 @@
-use std::{collections::HashMap, fmt::Display, path::Path};
+use std::{collections::HashMap, fmt::Display, fs::OpenOptions, io::Write, path::Path};
 use indexmap::IndexMap;
 use num::Num;
 use sal_core::{dbg::Dbg, error::Error};
@@ -13,7 +13,7 @@ pub struct Cache<T> {
 }
 //
 //
-impl<T: Num + PartialOrd + Ord + Copy + Display> Cache<T> {
+impl<T: Num + PartialOrd + Ord + Copy + Display + Encode> Cache<T> {
     ///
     /// Returns [Field] new instance
     pub fn new(parent: impl Into<String>, fields: IndexMap<String, Vec<T>>, exclude: Vec<usize>) -> Self {
@@ -37,6 +37,7 @@ impl<T: Num + PartialOrd + Ord + Copy + Display> Cache<T> {
     ///
     /// Stores data into the file
     pub fn store<P: AsRef<Path>>(self, path: P) -> Result<(), Error> {
+        let error = Error::new(&self.dbg, "load");
         #[derive(Encode, Decode)]
         struct _Field<T> {
             values: Vec<T>,
@@ -50,8 +51,16 @@ impl<T: Num + PartialOrd + Ord + Copy + Display> Cache<T> {
             fields: self.fields.iter().map(|(k, f)| (k.to_owned(), _Field { values: f.values() })).collect(),
             exclude: self.exclude.clone(),
         };
-        let error = Error::new(&self.dbg, "load");
-        Err(error.err("Not implemented"))
+        let mut file = OpenOptions
+            ::new()
+            .write(true)
+            .truncate(true)
+            .open(path)
+            .map_err(|e| error.pass(e.to_string()))?;
+        let buf = bincode::encode_to_vec(cache, bincode::config::standard())
+            .map_err(|e| error.pass(e.to_string()))?;
+        file.write_all(&buf)
+            .map_err(|e| error.pass(e.to_string()))
     }
     ///
     /// Returns the row's, associated with requested arguments
