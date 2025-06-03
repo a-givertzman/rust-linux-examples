@@ -58,6 +58,11 @@ impl<T: Num + PartialOrd + Copy + Zero> Pair<T> {
         }
         (up - lo) / (val - lo)
     }
+    ///
+    /// Returns lineary interpolated value
+    pub fn interpolate(&self, lo: T, up: T) -> T {
+        lo + (up - lo) / self.ratio
+    }
 }
 
 #[cfg(test)]

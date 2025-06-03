@@ -94,11 +94,11 @@ impl<T: Num + PartialOrd + Copy + Display + Encode + Decode<()> + Debug> Cache<T
                 None => log::warn!("Cache.get | Requested key `{key}` - is not found"),
             }
         }
-        log::debug!("Cache.get | pairs");
-        for ((lo, up), p) in &pairs {
-            let p: Vec<(&String, T)> = p.iter().map(|(k, p)| (k, p.val)).collect();
-            log::debug!("\t ({lo}, {up}): {:?}", p);
-        }
+        // log::debug!("Cache.get | pairs");
+        // for ((lo, up), p) in &pairs {
+        //     let p: Vec<(&String, T)> = p.iter().map(|(k, p)| (k, p.val)).collect();
+        //     log::debug!("\t ({lo}, {up}): {:?}", p);
+        // }
         // If on tuple of indexes number of pairs equals to number of requested args => match is found
         for ((lo, up), p) in pairs {
             if p.len() == args.len() {
@@ -120,31 +120,27 @@ impl<T: Num + PartialOrd + Copy + Display + Encode + Decode<()> + Debug> Cache<T
     #[dbg()]
     fn interpolation(&self, lo: usize, up: usize, pairs: Vec<(String, Pair<T>)>, keys: &Vec<String>) -> IndexMap<String, T> {
         let mut result = IndexMap::new();
-        let mut pairs_len = T::zero();
-
-        // Коэффициент как среднее
-        let (ratio, _, _) = pairs.iter().fold((T::zero(), T::zero(), T::zero()), |(_, acc, prev), (key, pair)| {
-            if (pairs_len > T::zero()) & (prev != pair.ratio) {
-                error!("\t Ratio diff in {} lo {}, up {}): \n\tprev: {:?}\n\tcurr: {:?}", key, pair.lower, pair.upper, prev, pair.ratio);
-            }
-            pairs_len = pairs_len + T::one();
-            let average = (acc + pair.ratio) / pairs_len;
-            (average, acc + pair.ratio, pair.ratio)
-        });
-        debug!("\t Ratio ({}, {}): {:?}", lo, up, ratio);
-        
-        // достаем поля (столбики) из которых надо взять значения
-        for key in keys {
-            if let Some(field) = self.fields.get(key) {
-                // lower value from field
-                let lower = field.get_by_idx(lo);
-                // upper value from field
-                let upper = field.get_by_idx(up);
-                // let delta = upper - lower;
-                // let base = [lower, upper].iter().min_by(|a, b| a.partial_cmp(b).unwrap()).unwrap().to_owned();
-                let interpolation = lower + (upper - lower) / ratio;
-                // let interpolation =  base + delta * ratio;
-                result.insert(key.to_owned(), interpolation);
+        // let mut pairs_len = T::zero();
+        // let (ratio, _, _) = pairs.iter().fold((T::zero(), T::zero(), T::zero()), |(_, acc, prev), (key, pair)| {
+        //     if (pairs_len > T::zero()) & (prev != pair.ratio) {
+        //         error!("\t Ratio diff in {} lo {}, up {}): \n\tprev: {:?}\n\tcurr: {:?}", key, pair.lower, pair.upper, prev, pair.ratio);
+        //     }
+        //     pairs_len = pairs_len + T::one();
+        //     let average = (acc + pair.ratio) / pairs_len;
+        //     (average, acc + pair.ratio, pair.ratio)
+        // });
+        // debug!("\t Ratio ({}, {}): {:?}", lo, up, ratio);
+        if let Some((_, pair)) = pairs.first() {
+            // достаем поля (столбики) из которых надо взять значения
+            for key in keys {
+                if let Some(field) = self.fields.get(key) {
+                    // lower value from field
+                    let lower = field.get_by_idx(lo);
+                    // upper value from field
+                    let upper = field.get_by_idx(up);
+                    let interpolation = pair.interpolate(lower, upper);
+                    result.insert(key.to_owned(), interpolation);
+                }
             }
         }
         result
