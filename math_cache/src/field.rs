@@ -52,8 +52,9 @@ impl<T: Num + PartialOrd + Copy + Display> Field<T> {
             prev = win[0];
             next = win[1];
             if Self::contains(val, prev, next) {
+                let ratio = (next - prev) / (next - val);
                 result.push(
-                    Pair::with(i, i + 1, val)
+                    Pair::with(i, i + 1, val, Pair::ratio(prev, next, val))
                 );
             }
         }
@@ -62,7 +63,7 @@ impl<T: Num + PartialOrd + Copy + Display> Field<T> {
             let prev = self.values[len -2];
             if Self::contains(val, prev,*next) | (val == prev) | (val == *next) {
                 result.push(
-                    Pair::with(len - 2, len - 1, val)
+                    Pair::with(len - 2, len - 1, val, Pair::ratio(prev, *next, val))
                 );
             }
         }
@@ -153,55 +154,58 @@ mod field {
                 0.00,
                 //    0    1    2    3    4    5    6    7    8
                 vec![0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7],
-                vec![Pair::with(0, 1, 0.00)],
+                vec![Pair::with(0, 1, 0.00, Pair::ratio(0.0, 0.1, 0.00))],
             ),
             (101,
                 0.00,
                 //    0    1    2    3    4    5    6    7    8
                 vec![0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1, 0.0],
-                vec![Pair::with(6, 7, 0.00)],
+                vec![Pair::with(6, 7, 0.00, Pair::ratio(0.1, 0.0, 0.00))],
             ),
             (102,
                 0.05,
                 //    0    1    2    3    4    5    6    7    8
                 vec![0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1, 0.0],
-                vec![Pair::with(6, 7, 0.05)],
+                vec![Pair::with(6, 7, 0.05, Pair::ratio(0.1, 0.0, 0.05))],
             ),
             (103,
                 0.15,
                 //    0    1    2    3    4    5    6    7    8
                 vec![0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1, 0.0],
-                vec![Pair::with(5, 6, 0.15)],
+                vec![Pair::with(5, 6, 0.15, Pair::ratio(0.2, 0.1, 0.15))],
             ),
             (02,
                 0.15,
                 vec![0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7],
-                vec![Pair::with(1, 2, 0.15)],
+                vec![Pair::with(1, 2, 0.15, Pair::ratio(0.1, 0.2, 0.15))],
             ),
             (03,
                 0.05,
                 vec![0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7],
-                vec![Pair::with(0, 1, 0.05)],
+                vec![Pair::with(0, 1, 0.05, Pair::ratio(0.0, 0.1, 0.05))],
             ),
             (04,
                 0.01,
                 vec![0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7],
-                vec![Pair::with(0, 1, 0.01)],
+                vec![Pair::with(0, 1, 0.01, Pair::ratio(0.0, 0.1, 0.01))],
             ),
             (05,
                 0.55,
+                //    0    1    2    3    4    5    6    7    8
                 vec![0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7],
-                vec![Pair::with(5, 6, 0.55)],
+                vec![Pair::with(5, 6, 0.55, Pair::ratio(0.5, 0.6, 0.55))],
             ),
             (06,
                 0.55,
+                //    0    1    2    3    4    5    6    7    8
                 vec![0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7],
-                vec![Pair::with(5, 6, 0.55)],
+                vec![Pair::with(5, 6, 0.55, Pair::ratio(0.5, 0.6, 0.55))],
             ),
             (07,
                 0.65,
+                //    0    1    2    3    4    5    6    7    8
                 vec![0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7],
-                vec![Pair::with(6, 7, 0.65)],
+                vec![Pair::with(6, 7, 0.65, Pair::ratio(0.6, 0.7, 0.65))],
             ),
             // (08,
             //     -0.10,
@@ -211,7 +215,7 @@ mod field {
             (09,
                 0.70,
                 vec![0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7],
-                vec![Pair::with(6, 7, 0.70)],
+                vec![Pair::with(6, 7, 0.70, Pair::ratio(0.6, 0.7, 0.7))],
             ),
             // (10,
             //     0.80,
@@ -222,12 +226,12 @@ mod field {
                 0.15,
                 //    0    1    2    3    4    5    6    7    8
                 vec![0.0, 0.1, 0.2, 0.1, 0.0, 0.1, 0.2, 0.1, 0.0],
-                vec![Pair::with(1, 2, 0.15), Pair::with(2, 3, 0.15), Pair::with(5, 6, 0.15), Pair::with(6, 7, 0.15)],
+                vec![Pair::with(1, 2, 0.15, Pair::ratio(0.1, 0.2, 0.15)), Pair::with(2, 3, 0.15, Pair::ratio(0.2, 0.1, 0.15)), Pair::with(5, 6, 0.15, Pair::ratio(0.1, 0.2, 0.15)), Pair::with(6, 7, 0.15, Pair::ratio(0.2, 0.1, 0.15))],
             ),
             (12,
                 0.2,
                 vec![0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7],
-                vec![Pair::with(2, 3, 0.2)],
+                vec![Pair::with(2, 3, 0.2, Pair::ratio(0.2, 0.3, 0.2))],
             ),
         ];
         for (step, val, vals, target) in test_data {

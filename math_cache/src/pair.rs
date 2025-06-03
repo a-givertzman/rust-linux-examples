@@ -26,11 +26,11 @@ impl<T: Num + PartialOrd + Copy + Zero> Pair<T> {
     }
     ///
     /// Returns [Pair] new instance
-    pub fn with(lower: usize, upper: usize, val: T) -> Self {
+    pub fn with(lower: usize, upper: usize, val: T, ratio: T) -> Self {
         Self {
             lower,
             upper,
-            ratio: T::zero(),
+            ratio,
             val,
         }
     }
@@ -46,6 +46,17 @@ impl<T: Num + PartialOrd + Copy + Zero> Pair<T> {
         true
         // self.lower == other.lower &&
         // self.upper == other.upper
+    }
+    ///
+    /// Returns the ratio for intarpolation
+    pub fn ratio(lo: T, up: T, val: T) -> T {
+        if val == lo {
+            return T::zero();
+        }
+        if val == up {
+            return T::one();
+        }
+        (up - lo) / (val - lo)
     }
 }
 

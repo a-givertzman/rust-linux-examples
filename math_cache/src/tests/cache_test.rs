@@ -34,6 +34,7 @@ mod cache {
         let test_duration = TestDuration::new(&dbg, Duration::from_secs(10));
         test_duration.run().unwrap();
         let fields = fields!{
+            //            0     1     2     3     4     5     6     7
             field1: vec![0.0,  0.1,  0.2,  0.3,  0.4,  0.5,  0.6,  0.7],
             field2: vec![0.0,  0.2,  0.4,  0.6,  0.8,  1.0,  1.2,  1.4],
             field3: vec![0.0,  0.4,  0.8,  1.2,  1.6,  2.0,  2.4,  2.8],
@@ -45,33 +46,92 @@ mod cache {
         };
         let exclude = vec![4, 7, 12];
         let test_data = [
-            (01, 
+            // (01, 
+            //     vec![
+            //         ("field1", 0.2),
+            //         ("field2", 0.4),
+            //         ("field3", 0.8),
+            //         // ("field4", 1.6),
+            //     ],
+            //     vec![
+            //         vec![
+            //             ("field1",  0.2),
+            //             ("field2",  0.4),
+            //             ("field3",  0.8),
+            //             ("field4",  1.6),
+            //             ("field5",  3.2),
+            //             ("field6",  6.4),
+            //             ("field7", 12.8),
+            //             ("field8", 25.6),
+            //         ],
+            //     ],
+            // ),
+            // (02, 
+            //     vec![
+            //         ("field3", 1.2),
+            //         // ("field2", 0.4),
+            //         // ("field3", 0.8),
+            //         // ("field4", 1.6),
+            //     ],
+            //     vec![
+            //         vec![
+            //             ("field1",  0.3),
+            //             ("field2",  0.6),
+            //             ("field3",  1.2),
+            //             ("field4",  2.4),
+            //             ("field5",  4.8),
+            //             ("field6",  9.6),
+            //             ("field7", 19.2),
+            //             ("field8", 38.4),
+            //         ],
+            //     ],
+            // ),
+            // (03,
+            //     vec![
+            //         ("field1", 0.15),
+            //         // ("field2", 0.4),
+            //         // ("field3", 0.8),
+            //         // ("field4", 1.6),
+            //     ],
+            //     vec![
+            //         vec![
+            //             ("field1",  0.15),
+            //             ("field2",  0.3),
+            //             ("field3",  0.6),
+            //             ("field4",  1.2),
+            //             ("field5",  2.4),
+            //             ("field6",  4.8),
+            //             ("field7",  9.6),
+            //             ("field8", 19.2),
+            //         ],
+            //     ],
+            // ),
+            (04,
                 vec![
-                    ("field1", 0.2),
-                    ("field2", 0.4),
-                    ("field3", 0.8),
-                    ("field4", 1.6),
+                    ("field4", 1.62),
+                    // ("field2", 0.4),
+                    // ("field3", 0.8),
+                    // ("field4", 1.6),
                 ],
                 vec![
                     vec![
-                        ("field1",  0.2),
-                        ("field2",  0.4),
-                        ("field3",  0.8),
-                        ("field4",  1.6),
-                        ("field5",  3.2),
-                        ("field6",  6.4),
-                        ("field7", 12.8),
-                        ("field8", 25.6),
+                        ("field1",   0.2025),
+                        ("field2",   0.4050),
+                        ("field3",   0.8100),
+                        ("field4",   1.6200),
+                        ("field5",   3.2400),
+                        ("field6",   6.4800),
+                        ("field7",  12.9600),
+                        ("field8",  25.9200),
                     ],
                 ],
             ),
-
         ];
         let cache = Cache::new(&dbg, fields.clone(), exclude);
         for (step, args, target ) in test_data {
             let time = Instant::now();
-            let result: Vec<Vec<(String, f64)>> = cache.get(&args);
-            let target: Vec<Vec<(String, f64)>> = target.into_iter().map(|row| {
+            let result: Vec<IndexMap<String, f64>> = cache.get(&args);
+            let target: Vec<IndexMap<String, f64>> = target.into_iter().map(|row| {
                 row.into_iter().map(|(k, v)| (k.to_owned(), v)).collect()
             }).collect();
             let elapsed = time.elapsed();

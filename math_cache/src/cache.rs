@@ -1,7 +1,7 @@
 use std::{collections::HashMap, fmt::{Debug, Display}, fs::OpenOptions, io::{Read, Write}, path::Path};
 use indexmap::IndexMap;
 use num::Num;
-use sal_core::{dbg::Dbg, error::Error};
+use sal_core::{dbg::Dbg, error::{self, Error}, log::{dbg, debug, error}};
 use crate::{field::Field, pair::Pair};
 use bincode::{Encode, Decode};
 ///
@@ -73,7 +73,7 @@ impl<T: Num + PartialOrd + Copy + Display + Encode + Decode<()> + Debug> Cache<T
     }
     ///
     /// Returns the row's, associated with requested arguments
-    pub fn get(&self, args: &[(&str, T)]) -> Vec<Vec<(String, T)>> {
+    pub fn get(&self, args: &[(&str, T)]) -> Vec<IndexMap<String, T>> {
         let mut result = vec![];
         let mut pairs: IndexMap<(usize, usize), Vec<(String, Pair<T>)>> = IndexMap::new();
         let requested_keys: Vec<String> = args.iter().map(|(k, _)| k.to_owned().into()).collect();
@@ -94,17 +94,18 @@ impl<T: Num + PartialOrd + Copy + Display + Encode + Decode<()> + Debug> Cache<T
                 None => log::warn!("Cache.get | Requested key `{key}` - is not found"),
             }
         }
-        log::trace!("Cache.get | pairs");
+        log::debug!("Cache.get | pairs");
         for ((lo, up), p) in &pairs {
             let p: Vec<(&String, T)> = p.iter().map(|(k, p)| (k, p.val)).collect();
-            log::trace!("\t ({lo}, {up}): {:?}", p);
+            log::debug!("\t ({lo}, {up}): {:?}", p);
         }
         // If on tuple of indexes number of pairs equals to number of requested args => match is found
         for ((lo, up), p) in pairs {
             if p.len() == args.len() {
-                let mut origin: Vec<(String, T)> = p.iter().map(|(k, v)| (k.to_owned(), v.val)).collect();
+                let mut origin: IndexMap<String, T> = p.iter().map(|(k, v)| (k.to_owned(), v.val)).collect();
                 let interpolated = self.interpolation(lo, up, p, &keys);
                 origin.extend(interpolated);
+                origin.sort_by(|k1, v1, k2, v2| k1.cmp(k2));
                 result.push(origin);
             }
         }
@@ -116,23 +117,34 @@ impl<T: Num + PartialOrd + Copy + Display + Encode + Decode<()> + Debug> Cache<T
     /// - upper - index of next row
     /// - pairs - values found in associated fields
     /// - keys - keys of fields to be interpolated
-    fn interpolation(&self, lower: usize, upper: usize, pairs: Vec<(String, Pair<T>)>, keys: &Vec<String>) -> Vec<(String, T)> {
-        let mut result = vec![];
+    #[dbg()]
+    fn interpolation(&self, lo: usize, up: usize, pairs: Vec<(String, Pair<T>)>, keys: &Vec<String>) -> IndexMap<String, T> {
+        let mut result = IndexMap::new();
+        let mut pairs_len = T::zero();
 
-        // Коэффициент из первого найденого значения
-        let ratio = pairs.first().unwrap().1.ratio;
+        // Коэффициент как среднее
+        let (ratio, _, _) = pairs.iter().fold((T::zero(), T::zero(), T::zero()), |(_, acc, prev), (key, pair)| {
+            if (pairs_len > T::zero()) & (prev != pair.ratio) {
+                error!("\t Ratio diff in {} lo {}, up {}): \n\tprev: {:?}\n\tcurr: {:?}", key, pair.lower, pair.upper, prev, pair.ratio);
+            }
+            pairs_len = pairs_len + T::one();
+            let average = (acc + pair.ratio) / pairs_len;
+            (average, acc + pair.ratio, pair.ratio)
+        });
+        debug!("\t Ratio ({}, {}): {:?}", lo, up, ratio);
         
         // достаем поля (столбики) из которых надо взять значения
         for key in keys {
             if let Some(field) = self.fields.get(key) {
                 // lower value from field
-                let lo = field.get_by_idx(lower);
+                let lower = field.get_by_idx(lo);
                 // upper value from field
-                let up = field.get_by_idx(upper);
-                let delta = up - lo;
-                let base = [lo, up].iter().min_by(|a, b| a.partial_cmp(b).unwrap()).unwrap().to_owned();
-                let interpolation =  base + delta * ratio;
-                result.push((key.to_owned(), interpolation));
+                let upper = field.get_by_idx(up);
+                // let delta = upper - lower;
+                // let base = [lower, upper].iter().min_by(|a, b| a.partial_cmp(b).unwrap()).unwrap().to_owned();
+                let interpolation = lower + (upper - lower) / ratio;
+                // let interpolation =  base + delta * ratio;
+                result.insert(key.to_owned(), interpolation);
             }
         }
         result
@@ -146,7 +158,7 @@ struct _Field<T> {
 }
 #[derive(Encode, Decode)]
 struct _Cache<T> {
-    fields: HashMap<String, _Field<T>>,
+    fields: Vec<(String, _Field<T>)>,
     exclude: Vec<usize>,
 }
 
