@@ -1,10 +1,9 @@
 #[cfg(test)]
 
 mod cache_sofia {
-    use bincode::{Decode, Encode};
     use indexmap::IndexMap;
     use sal_core::dbg::Dbg;
-    use std::{collections::HashMap, fs::OpenOptions, io::{Read, Write}, sync::Once, time::{Duration, Instant}};
+    use std::{sync::Once, time::{Duration, Instant}};
     use testing::stuff::max_test_duration::TestDuration;
     use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
     use crate::{cache::Cache, fields};
@@ -25,6 +24,7 @@ mod cache_sofia {
     ///
     /// Testing `get` method
     #[test]
+    #[ignore = "Has no valid test datasets"]
     fn get() {
         DebugSession::init(LogLevel::Debug, Backtrace::Short);
         init_once();
