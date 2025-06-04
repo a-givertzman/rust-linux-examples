@@ -56,12 +56,12 @@ impl<T: Num + PartialOrd + Copy + Zero> Pair<T> {
         if val == up {
             return T::one();
         }
-        (up - lo) / (val - lo)
+        (val - lo) / (up - lo)
     }
     ///
     /// Returns lineary interpolated value
-    pub fn interpolate(&self, lo: T, up: T) -> T {
-        lo + (up - lo) / self.ratio
+    pub fn interpolate(lo: T, up: T, ratio: T) -> T {
+        lo + (up - lo) / ratio
     }
 }
 

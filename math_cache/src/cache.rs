@@ -1,4 +1,4 @@
-use std::{collections::HashMap, fmt::{Debug, Display}, fs::OpenOptions, io::{Read, Write}, path::Path};
+use std::{fmt::{Debug, Display}, fs::OpenOptions, io::{Read, Write}, path::Path};
 use indexmap::IndexMap;
 use num::Num;
 use sal_core::{dbg::Dbg, error::{self, Error}, log::{dbg, debug, error}};
@@ -105,7 +105,8 @@ impl<T: Num + PartialOrd + Copy + Display + Encode + Decode<()> + Debug> Cache<T
                 let mut origin: IndexMap<String, T> = p.iter().map(|(k, v)| (k.to_owned(), v.val)).collect();
                 let interpolated = self.interpolation(lo, up, p, &keys);
                 origin.extend(interpolated);
-                origin.sort_by(|k1, v1, k2, v2| k1.cmp(k2));
+                // TODO: To be deleted, used for testing only, to make results readable
+                origin.sort_by(|k1, _, k2, _| k1.cmp(k2));
                 result.push(origin);
             }
         }
@@ -120,30 +121,35 @@ impl<T: Num + PartialOrd + Copy + Display + Encode + Decode<()> + Debug> Cache<T
     #[dbg()]
     fn interpolation(&self, lo: usize, up: usize, pairs: Vec<(String, Pair<T>)>, keys: &Vec<String>) -> IndexMap<String, T> {
         let mut result = IndexMap::new();
-        // let mut pairs_len = T::zero();
-        // let (ratio, _, _) = pairs.iter().fold((T::zero(), T::zero(), T::zero()), |(_, acc, prev), (key, pair)| {
-        //     if (pairs_len > T::zero()) & (prev != pair.ratio) {
-        //         error!("\t Ratio diff in {} lo {}, up {}): \n\tprev: {:?}\n\tcurr: {:?}", key, pair.lower, pair.upper, prev, pair.ratio);
-        //     }
-        //     pairs_len = pairs_len + T::one();
-        //     let average = (acc + pair.ratio) / pairs_len;
-        //     (average, acc + pair.ratio, pair.ratio)
-        // });
-        // debug!("\t Ratio ({}, {}): {:?}", lo, up, ratio);
-        if let Some((_, pair)) = pairs.first() {
-            // достаем поля (столбики) из которых надо взять значения
+        if let Some(ratio) = Self::average_ratio(pairs) {
+            debug!("\t ratio ({}, {}): {:?}", lo, up, ratio);
+            // Достаем поля (столбики) из которых надо взять значения
             for key in keys {
                 if let Some(field) = self.fields.get(key) {
                     // lower value from field
                     let lower = field.get_by_idx(lo);
                     // upper value from field
                     let upper = field.get_by_idx(up);
-                    let interpolation = pair.interpolate(lower, upper);
+                    let interpolation = Pair::interpolate(lower, upper, ratio);
                     result.insert(key.to_owned(), interpolation);
                 }
             }
         }
         result
+    }
+    ///
+    /// Returns average ration from multiple pairs
+    fn average_ratio(pairs: Vec<(String, Pair<T>)>) -> Option<T> {
+        if pairs.len() > 0 {
+            let mut sum = T::zero();
+            let mut count = T::zero();
+            for (_, p) in pairs {
+                count = count + T::one();
+                sum = sum + p.ratio;
+            }
+            return Some(sum / count);
+        }
+        None
     }
 }
 ///
