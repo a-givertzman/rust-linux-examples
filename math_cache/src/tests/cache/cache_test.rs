@@ -7,7 +7,7 @@ mod cache {
     use std::{collections::HashMap, fs::OpenOptions, io::{Read, Write}, sync::Once, time::{Duration, Instant}};
     use testing::stuff::max_test_duration::TestDuration;
     use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
-    use crate::{cache::Cache, fields};
+    use crate::{cache::Cache, fields, tests::approx_eq::AproxEq};
     ///
     ///
     static INIT: Once = Once::new();
@@ -57,7 +57,6 @@ mod cache {
             //         ("field1", 0.2),
             //         ("field2", 0.4),
             //         ("field3", 0.8),
-            //         // ("field4", 1.6),
             //     ],
             //     vec![
             //         vec![
@@ -75,9 +74,6 @@ mod cache {
             // (02, 
             //     vec![
             //         ("field3", 1.2),
-            //         // ("field2", 0.4),
-            //         // ("field3", 0.8),
-            //         // ("field4", 1.6),
             //     ],
             //     vec![
             //         vec![
@@ -95,9 +91,6 @@ mod cache {
             // (03,
             //     vec![
             //         ("field1", 0.15),
-            //         // ("field2", 0.4),
-            //         // ("field3", 0.8),
-            //         // ("field4", 1.6),
             //     ],
             //     vec![
             //         vec![
@@ -114,10 +107,7 @@ mod cache {
             // ),
             (04,
                 vec![
-                    ("field1", 0.3),
-                    ("field2", 0.7),
-                    // ("field3", 0.8),
-                    // ("field4", 1.6),
+                    ("field4", 1.62),
                 ],
                 vec![
                     vec![
@@ -132,17 +122,43 @@ mod cache {
                     ],
                 ],
             ),
+            (05,
+                vec![
+                    ("field1", 0.3),
+                    ("field2", 0.7),
+                ],
+                vec![
+                    vec![
+                        ("field1",   0.3000),
+                        ("field2",   0.7000),
+                        ("field3",   1.3000),
+                        ("field4",   2.6000),
+                        ("field5",   5.2000),
+                        ("field6",  10.4000),
+                        ("field7",  20.8000),
+                        ("field8",  41.6000),
+                    ],
+                ],
+            ),
         ];
         let cache = Cache::new(&dbg, fields.clone(), exclude);
         for (step, args, target ) in test_data {
             let time = Instant::now();
-            let result: Vec<IndexMap<String, f64>> = cache.get(&args);
-            let target: Vec<IndexMap<String, f64>> = target.into_iter().map(|row| {
+            let results: Vec<IndexMap<String, f64>> = cache.get(&args);
+            let targets: Vec<IndexMap<String, f64>> = target.into_iter().map(|row| {
                 row.into_iter().map(|(k, v)| (k.to_owned(), v)).collect()
             }).collect();
             let elapsed = time.elapsed();
-            log::debug!("step {step}   elapsed: {:?} \nresult: {:?}\ntarget: {:?}", time.elapsed(), result, target);
-            assert!(result == target, "step {step}   elapsed: {:?} \nresult: {:?}\ntarget: {:?}", elapsed, result, target);
+            log::debug!("step {step}   elapsed: {:?} \nresult: {:?}\ntarget: {:?}", time.elapsed(), results, targets);
+
+            assert!(results.len() == targets.len(), "step {step}   elapsed: {:?} \nresult: {:?}\ntarget: {:?}", elapsed, results.len(), targets.len());
+            for (i, target) in targets.iter().enumerate() {
+                let result = results[i].clone();
+                for (tk, target) in target {
+                    let result = result[tk];
+                    assert!(result.aprox_eq(*target, 3), "step {step}   elapsed: {:?} \nresult: {:?}\ntarget: {:?}", elapsed, results, targets);
+                }
+            }
         }
         test_duration.exit();
     }

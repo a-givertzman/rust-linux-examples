@@ -61,7 +61,7 @@ impl<T: Num + PartialOrd + Copy + Zero> Pair<T> {
     ///
     /// Returns lineary interpolated value
     pub fn interpolate(lo: T, up: T, ratio: T) -> T {
-        lo + (up - lo) / ratio
+        ratio * (up - lo) + lo
     }
 }
 
