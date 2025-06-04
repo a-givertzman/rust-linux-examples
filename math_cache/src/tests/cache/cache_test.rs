@@ -140,6 +140,24 @@ mod cache {
                     ],
                 ],
             ),
+            (05,
+                vec![
+                    ("field1", 0.39),
+                    ("field2", 0.7),
+                ],
+                vec![
+                    vec![
+                        ("field1",   0.3900),
+                        ("field2",   0.7000),
+                        ("field3",   1.4800),
+                        ("field4",   2.9600),
+                        ("field5",   5.9200),
+                        ("field6",  11.8400),
+                        ("field7",  23.6800),
+                        ("field8",  47.3600),
+                    ],
+                ],
+            ),
         ];
         let cache = Cache::new(&dbg, fields.clone(), exclude);
         for (step, args, target ) in test_data {
