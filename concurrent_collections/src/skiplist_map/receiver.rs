@@ -18,11 +18,10 @@ impl Receiver {
         }
     }
     pub fn insert(&self, key: String, event: Event) {
-        // self.map.insert(key, event);
+        self.map.insert(key, event);
     }
     pub fn received(&self) -> usize {
-        // self.map.len()
-        0
+        self.map.len()
     }
     pub fn exit(&self) {
         self.exit.store(true, Ordering::SeqCst);
