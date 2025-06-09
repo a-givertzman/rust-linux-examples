@@ -37,8 +37,10 @@ fn main() {
         (01, Box::new(DashMapTest::new(""))),
     ];
     for (step, test) in tests {
-        let result = test.run(receivers, producers, loads, load_interval, data.clone());
-        log::info!("main | test {step}: \n{:?}", result);
+        match test.run(receivers, producers, loads, load_interval, data.clone()) {
+            Ok(result) => log::info!("main | test {step}: \n{:?}", result),
+            Err(err) => log::info!("main | test {step}: Error: {:?}", err),
+        }
     }
     // let results = dashmap::Test::run(receivers, producers, data)
     // let target_total_received = count * producers;

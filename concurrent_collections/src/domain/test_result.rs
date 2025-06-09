@@ -14,19 +14,19 @@ pub struct TestResult {
 impl Debug for TestResult {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let result = format!(r#"
-                test: {}
-                ---------------------------
-                Events: {:?}
-                ---------------------------
-                Producers: {:?}
-                Total produced: {:?}
-                ---------------------------
-                Receivers: {:?}
-                Total received: {:?}
-                ---------------------------
-                Loads: {:?}
-                ---------------------------
-                Total elapsed: {:?}
+test: {}
+---------------------------
+Events: {:?}
+---------------------------
+Producers: {:?}
+Total produced: {:?}
+---------------------------
+Receivers: {:?}
+Total received: {:?}
+---------------------------
+Loads: {:?}
+---------------------------
+Total elapsed: {:?}
             "#, 
             self.name,
             self.events,
