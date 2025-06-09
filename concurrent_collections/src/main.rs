@@ -1,11 +1,14 @@
 mod dashmap;
 mod domain;
+mod indexmap;
 
 pub use dashmap::*;
 pub use domain::*;
 
 use std::time::Duration;
 use serde::Deserialize;
+
+use crate::indexmap::IndexMapTest;
 
 #[derive(Deserialize)]
 pub struct Config {
@@ -33,8 +36,9 @@ fn main() {
         name: i.to_string(),
         value: Value::Double(0.5),
     }).collect();
-    let tests: [(i32, Box<dyn Test>); 1] = [
+    let tests: &[(i32, Box<dyn Test>)] = &[
         (01, Box::new(DashMapTest::new(""))),
+        (02, Box::new(IndexMapTest::new(""))),
     ];
     for (step, test) in tests {
         match test.run(receivers, producers, loads, load_interval, data.clone()) {

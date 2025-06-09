@@ -392,6 +392,7 @@ dependencies = [
  "env_logger",
  "evmap",
  "flurry",
+ "indexmap",
  "kanal",
  "log",
  "parking_lot 0.12.4",

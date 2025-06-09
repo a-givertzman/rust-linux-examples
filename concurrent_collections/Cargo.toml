@@ -15,6 +15,10 @@ serde_json = { workspace = true }
 bincode = { workspace = true }
 
 #
+# Concurrent collections
+indexmap = "~2.9"
+
+#
 # Tread safety
 parking_lot = "~0.12"
 kanal = "0.1"

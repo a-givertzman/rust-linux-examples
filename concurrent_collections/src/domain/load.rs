@@ -30,18 +30,18 @@ impl Load {
         let mut rng = rand::rng();
         let p = rng.random_range(10_000..100_000);
         thread::spawn(move|| {
-            log::info!("{}.run | Start", dbg);
+            log::debug!("{}.run | Start", dbg);
             let mut cycle = ServiceCycle::new(&format!("{}", dbg), interval);
             loop {
                 cycle.start();
                 let _lucas_lehmer = Self::lucas_lehmer(p);
-                // log::info!("{}.run | P: {:?}, lucas_lehmer: {}", dbg, p, lucas_lehmer);
+                // log::debug!("{}.run | P: {:?}, lucas_lehmer: {}", dbg, p, lucas_lehmer);
                 if exit.load(Ordering::SeqCst) {
                     break;
                 }
                 cycle.wait();
             }
-            log::info!("{}.run | Exit", dbg);
+            log::debug!("{}.run | Exit", dbg);
         })
     }
     ///
