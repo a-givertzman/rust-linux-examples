@@ -1,0 +1,31 @@
+[package]
+name = "concurrent_collections"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+log = "0.4"
+env_logger = "0.11"
+
+#
+# Serde
+serde = { workspace = true }
+serde_yaml = { workspace = true }
+serde_json = { workspace = true }
+bincode = { workspace = true }
+
+#
+# Tread safety
+parking_lot = "~0.12"
+kanal = "0.1"
+
+#
+# Concurrent collections
+dashmap = "~6.1"
+flurry = "~0.5"
+chashmap = "~2.2"
+evmap = "~10.0"
+
+#
+# Misc
+rand = "^0.9"

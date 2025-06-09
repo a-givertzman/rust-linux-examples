@@ -2,6 +2,7 @@
 workspace.resolver = "3"
 
 members = [
+    "concurrent_collections",
     "queue",
     "kanal_channel",
     "kanal_channel_encoded",
