@@ -3,12 +3,14 @@ mod dashmap_map;
 mod domain;
 mod papaya_map;
 mod indexmap_map;
+mod skiplist_map;
 
 pub use chashmap_map::*;
 pub use dashmap_map::*;
 pub use domain::*;
 pub use indexmap_map::*;
 pub use papaya_map::*;
+pub use skiplist_map::*;
 
 use std::time::Duration;
 use serde::Deserialize;
@@ -43,7 +45,8 @@ fn main() {
         (01, Box::new(DashMapTest::new(""))),
         (02, Box::new(IndexMapTest::new(""))),
         (03, Box::new(PapayaMapTest::new(""))),
-        (03, Box::new(CHashMapTest::new(""))),
+        (04, Box::new(CHashMapTest::new(""))),
+        (05, Box::new(SkipListMapTest::new(""))),
     ];
     for (step, test) in tests {
         match test.run(receivers, producers, loads, load_interval, data.clone()) {
