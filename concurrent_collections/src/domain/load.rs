@@ -1,6 +1,6 @@
 use std::{sync::{atomic::{AtomicBool, Ordering}, Arc}, thread::{self, JoinHandle}, time::Duration};
 use rand::Rng;
-use crate::cycle::ServiceCycle;
+use crate::ServiceCycle;
 ///
 /// 
 pub struct Load {

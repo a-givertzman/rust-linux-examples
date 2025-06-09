@@ -1,5 +1,5 @@
 use bincode::{Decode, Encode};
-use crate::value::Value;
+use crate::Value;
 
 #[derive(Debug, Clone, Decode, Encode)]
 pub struct Event {
