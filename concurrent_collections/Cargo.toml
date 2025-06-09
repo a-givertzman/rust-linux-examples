@@ -25,6 +25,7 @@ dashmap = "~6.1"
 flurry = "~0.5"
 chashmap = "~2.2"
 evmap = "~10.0"
+crossbeam-skiplist = "~0.1"
 
 #
 # Misc

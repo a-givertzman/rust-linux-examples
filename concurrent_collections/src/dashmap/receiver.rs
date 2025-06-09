@@ -1,7 +1,5 @@
 use std::{sync::{atomic::{AtomicBool, AtomicUsize, Ordering}, Arc}, thread::{self, JoinHandle}, time::Duration};
 
-use crate::event::Event;
-
 pub struct Receiver {
     index: usize,
     limit: usize,
