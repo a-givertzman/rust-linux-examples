@@ -43,7 +43,7 @@ fn main() {
         (01, Box::new(DashMapTest::new(""))),
         (02, Box::new(IndexMapTest::new(""))),
         (03, Box::new(PapayaMapTest::new(""))),
-        (03, Box::new(PapayaMapTest::new(""))),
+        (03, Box::new(CHashMapTest::new(""))),
     ];
     for (step, test) in tests {
         match test.run(receivers, producers, loads, load_interval, data.clone()) {
