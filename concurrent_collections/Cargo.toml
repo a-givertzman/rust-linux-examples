@@ -26,7 +26,7 @@ kanal = "0.1"
 #
 # Concurrent collections
 dashmap = "~6.1"
-flurry = "~0.5"
+papaya = "~0.2"
 chashmap = "~2.2"
 evmap = "~10.0"
 crossbeam-skiplist = "~0.1"

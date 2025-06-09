@@ -1,14 +1,17 @@
-mod dashmap;
+mod chashmap_map;
+mod dashmap_map;
 mod domain;
-mod indexmap;
+mod papaya_map;
+mod indexmap_map;
 
-pub use dashmap::*;
+pub use chashmap_map::*;
+pub use dashmap_map::*;
 pub use domain::*;
+pub use indexmap_map::*;
+pub use papaya_map::*;
 
 use std::time::Duration;
 use serde::Deserialize;
-
-use crate::indexmap::IndexMapTest;
 
 #[derive(Deserialize)]
 pub struct Config {
@@ -39,6 +42,8 @@ fn main() {
     let tests: &[(i32, Box<dyn Test>)] = &[
         (01, Box::new(DashMapTest::new(""))),
         (02, Box::new(IndexMapTest::new(""))),
+        (03, Box::new(PapayaMapTest::new(""))),
+        (03, Box::new(PapayaMapTest::new(""))),
     ];
     for (step, test) in tests {
         match test.run(receivers, producers, loads, load_interval, data.clone()) {

@@ -1,5 +1,6 @@
 use std::{sync::Arc, thread::JoinHandle, time::{Duration, Instant}};
-use crate::{Error, Event, Load, Producer, Receiver, Test, TestResult};
+use crate::{Error, Event, Load, Test, TestResult};
+use super::{Producer, Receiver};
 
 pub struct DashMapTest {
     name: String,

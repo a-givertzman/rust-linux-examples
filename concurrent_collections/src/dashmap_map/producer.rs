@@ -1,14 +1,15 @@
 use std::{sync::{atomic::{AtomicBool, Ordering}, Arc}, thread::{self, JoinHandle}};
 use crate::Event;
+use super::Receiver;
 
 pub struct Producer {
     index: usize,
-    service: Arc<crate::Receiver>,
+    service: Arc<Receiver>,
     data: Vec<Event>,
     exit: Arc<AtomicBool>,
 }
 impl Producer {
-    pub fn new(index: usize, service: Arc<crate::Receiver>, data: &[Event]) -> Self {
+    pub fn new(index: usize, service: Arc<Receiver>, data: &[Event]) -> Self {
         Self {
             index,
             service,
