@@ -6,6 +6,7 @@ mod indexmap_map;
 mod skiplist_map;
 
 pub use chashmap_map::*;
+use dashmap::DashMap;
 pub use dashmap_map::*;
 pub use domain::*;
 pub use indexmap_map::*;
@@ -89,4 +90,9 @@ fn main() {
     // // log::info!("main | Loads: {:?}", loads.len());
     // // log::info!("main | ---------------------------");
     // log::info!("main | Total elapsed: {:?}", total_elapsed);
+    let map = DashMap::new();
+    for i in 0..12 {
+        map.insert(format!("{i}"), format!("Value {}", i));
+    }
+    log::info!("main | DashMap: {:#?}", map);
 }
