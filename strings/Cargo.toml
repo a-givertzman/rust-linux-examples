@@ -1,0 +1,14 @@
+[package]
+name = "strings"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+log = { workspace = true }
+env_logger = { workspace = true }
+
+concat-string = "~1.0"
+
+#
+# Misc
+rand = "^0.9"

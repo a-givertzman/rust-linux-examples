@@ -1,0 +1,42 @@
+[package]
+name = "truck_3d"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+log = { workspace = true }
+env_logger = { workspace = true }
+
+truck-stepio = "~0.3"
+truck-base = "~0.5"
+truck-polymesh = "~0.6"
+truck-meshalgo = "~0.4"
+truck-topology = "~0.6"
+
+# Abstractions for asynchronous programming. Necessary for communicate with GPU.
+pollster = "~0.4"
+# use async function in trait declaration
+async-trait = "~0.1"
+# low-level crate for handling GUI systems
+winit = "~0.30"
+# graphic utility library based on wgpu
+truck-platform = "~0.6"
+# Visualization of shape and polygon mesh based on truck-platform
+truck-rendimpl = "~0.6"
+
+
+[[bin]]
+name = "section4_1"
+path = "src/section4_1.rs"
+
+[[bin]]
+name = "section4_2"
+path = "src/section4_2.rs"
+
+[[bin]]
+name = "section4_3"
+path = "src/section4_3.rs"
+
+[[bin]]
+name = "section4_4"
+path = "src/section4_4.rs"

@@ -10,16 +10,18 @@ members = [
     "log_macro_use",
     "math_cache",
     "std_channel",
+    "strings",
     "tokio_channel",
     "tokio_std_channel",
     "tokio_flume",
+    "truck_3d",
 ]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [workspace.dependencies]
-log = "0.4"
-env_logger = "0.11"
+log = "~0.4"
+env_logger = "~0.11"
 #
 # Internal
 testing = { git = "https://github.com/a-givertzman/rust-testing.git", tag = "0.1.2" }
@@ -27,10 +29,10 @@ debugging = { git = "https://github.com/a-givertzman/rust-debuging.git", tag = "
 sal-core = { git = "https://github.com/a-givertzman/rust-sal-core.git", tag = "0.0.4" }
 #
 # Serde
-serde = { version = "^1.0", features = ["derive"] }
+serde = { version = "~1.0", features = ["derive"] }
 serde_yaml = "^0.9"
-serde_json = "^1.0"
-bincode = "^2.0"
+serde_json = "~1.0"
+bincode = "~2.0"
 #
 # Collections
-indexmap = "^2.9"
+indexmap = "~2.10"

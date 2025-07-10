@@ -1,0 +1,52 @@
+mod app;
+use std::sync::Arc;
+
+use app::*;
+use truck_platform::*;
+use truck_rendimpl::*;
+use winit::window::Window;
+
+/// Create a mesh with one equilateral triangle registered and save it in obj format
+fn main() {
+    // the positions of vertices
+    // let positions = vec![
+    //     Point3::new(0.0, 0.0, 0.0),
+    //     Point3::new(1.0, 0.0, 0.0),
+    //     Point3::new(0.5, f64::sqrt(3.0) / 2.0, 0.0),
+    // ];
+    // // The store of attributes. This time, only the location information is registered.
+    // let attrs = StandardAttributes {
+    //     positions,
+    //     ..Default::default()
+    // };
+    // // construct face
+    // let faces = Faces::from_iter([[0, 1, 2]]);
+    // // create polygon
+    // let polygon = PolygonMesh::new(attrs, faces);
+
+    // // create obj file
+    // let mut obj = std::fs::File::create("triangle.obj").unwrap();
+    // // writing!
+    // obj::write(&polygon, &mut obj).unwrap();
+    // truck_stepio::r#in
+    // truck_polymesh::
+
+    MyApp::run();
+}
+
+// Declare the application handler, a struct with a scene
+struct MyApp {
+    scene: WindowScene,
+}
+// Make MyApp an application handler by implementing App
+#[async_trait(?Send)]
+impl App for MyApp {
+    // constructor
+    async fn init(window: Arc<Window>) -> Self { /* later mentioned */ }
+    
+    // This method is called every frame.
+    fn render(&mut self, frame: &SwapChainFrame) {
+        // scene draws a picture to the window.
+        self.scene.render(&frame.output.view);
+    }
+}
